@@ -27,6 +27,11 @@ define ( 'SGM_OPTION',  'simple-post-gmaps' );
 define ( 'SGM_URL', plugins_url('/', __FILE__) );
 define ( 'SGM_DIR', dirname(__FILE__) );
 
+define ( 'SGM_TOOLTIP', '<div class="infotool-gmap" style="font-size:11px;">
+	<h6 style="font-size:13px;text-align:left;margin:0;"><a style="text-decoration:none;" href="%permalink%">%title%</a></h6>
+	<p style="margin:0;padding:0;text-align:left;">%description% <a href="%permalink%">%readmore%</a></p>
+</div>' );
+
 // Fonctions
 require (SGM_DIR . '/inc/functions.php');
 require (SGM_DIR . '/inc/class.widget.php');

@@ -56,14 +56,19 @@ class Simple_Post_Gmaps_Admin {
 		// Default values for region
 		if ( !isset($current_settings['region']) )
 			$current_settings['region'] = substr($locale, 3, 2);
+			
+		if ( !isset($current_settings['tooltip']) && empty($current_settings['tooltip']) ) {
+			$current_settings['tooltip'] = SGM_TOOLTIP;
+		}
 		?>
 		<div class="wrap">
 			<?php screen_icon(); ?>
 			<h2><?php _e("Simple Post Gmaps : Settings", 'simple-post-gmaps'); ?></h2>
-			<br />
+		
 			<form action="" method="post">
+				<h3><?php _e('Custom Post Types', 'simple-post-gmaps'); ?></h3>
 				<div id="col-container">
-					<table class="widefat tag fixed" cellspacing="0">
+					<table class="widefat fixed" cellspacing="0">
 						<thead>
 							<tr>
 								<th scope="col" id="label" class="manage-column column-name"><?php _e('Custom type', 'simple-post-gmaps'); ?></th>
@@ -101,11 +106,13 @@ class Simple_Post_Gmaps_Admin {
 						</tbody>
 					</table>
 					
+					<h3><?php _e('Google Maps', 'simple-post-gmaps'); ?></h3>
 					<table class="form-table">
 						<tr valign="top">
 							<th scope="row"><label for="region"><?php _e('Google Maps Region', 'simple-post-gmaps'); ?></label></th>
 							<td>
 								<input name="region" type="text" id="region" value="<?php echo esc_attr($current_settings['region']); ?>" class="regular-text" />
+								<br />
 								<span class="description"><?php _e('You can define the default region of Google Maps for improve search results. The <code>region</code> parameter accepts <a href="http://www.unicode.org/reports/tr35/#Unicode_Language_and_Locale_Identifiers">Unicode region subtag identifiers</a> which (generally) have a one-to-one mapping to country code Top-Level Domains (ccTLDs). Most Unicode region identifiers are identical to ISO 3166-1 codes, with some notable exceptions. For example, Great Britain\'s ccTLD is "uk" (corresponding to the domain <code>.co.uk</code>) while its region identifier is "GB."', 'simple-post-gmaps'); ?></span>
 							</td>
 						</tr>
@@ -113,7 +120,18 @@ class Simple_Post_Gmaps_Admin {
 							<th scope="row"><label for="language"><?php _e('Google Maps Language', 'simple-post-gmaps'); ?></label></th>
 							<td>
 								<input name="language" type="text" id="language" value="<?php echo esc_attr($current_settings['language']); ?>" class="regular-text" />
+								<br />
 								<span class="description"><?php _e('You can define the language of Google Maps interface. Use <a href="http://spreadsheets.google.com/pub?key=p9pdwsai2hDMsLkXsoM05KQ&gid=1">this Google page of documentation</a> for find your code language. Example : French, put "fr"', 'simple-post-gmaps'); ?></span>
+							</td>
+						</tr>
+					</table>
+					
+					<h3><?php _e('Info window content (advanced usage !)', 'simple-post-gmaps'); ?></h3>
+					<table class="form-table">
+						<tr valign="top">
+							<th scope="row"><label for="tooltip"><?php _e('Code HTML for tooltip Google Maps', 'simple-post-gmaps'); ?></label></th>
+							<td>
+								<textarea cols="50" rows="10" style="width:100%" name="tooltip" type="text" id="tooltip"><?php echo esc_attr($current_settings['tooltip']); ?></textarea>
 							</td>
 						</tr>
 					</table>
@@ -142,6 +160,7 @@ class Simple_Post_Gmaps_Admin {
 			$new_options['custom-types'] 	= $_POST['custom-types'];
 			$new_options['region'] 			= stripslashes($_POST['region']);
 			$new_options['language'] 		= stripslashes($_POST['language']);
+			$new_options['tooltip'] 		= stripslashes($_POST['tooltip']);
 			update_option( SGM_OPTION, $new_options );
 			
 			$this->message = __('Settings updated with success !', 'simple-post-gmaps');
@@ -178,13 +197,19 @@ class Simple_Post_Gmaps_Admin {
 	function loadJavascript() {
 		global $pagenow;
 		
-		if ( in_array( $pagenow, array('post.php', 'post-new.php') ) ) {
-			wp_enqueue_style ( 'simple-gm', SGM_URL . '/inc/ressources/simple.gm.css', array(), SGM_VERSION, 'all' );
+		// Get settings on DB
+		$current_settings = get_option( SGM_OPTION );
+	
+		// Current post type
+		$post_type = ( !isset($_GET['post_type']) ) ? 'post' : stripslashes($_GET['post_type']);
+
+		if ( in_array( $pagenow, array('post.php', 'post-new.php') ) && in_array( $post_type, (array) $current_settings['custom-types'] ) ) {
+			wp_enqueue_style ( 'simple-gm', SGM_URL . 'inc/ressources/simple.gm.css', array(), SGM_VERSION, 'all' );
 			
-			wp_enqueue_script( 'geo-location', 	SGM_URL . '/inc/ressources/geo-location.min.js', array('jquery'), SGM_VERSION );
-			wp_enqueue_script( 'geo-gears', 	SGM_URL . '/inc/ressources/gears-init.min.js', array('geo-location'), SGM_VERSION );
+			wp_enqueue_script( 'geo-location', 	SGM_URL . 'inc/ressources/geo-location.min.js', array('jquery'), SGM_VERSION );
+			wp_enqueue_script( 'geo-gears', 	SGM_URL . 'inc/ressources/gears-init.min.js', array('geo-location'), SGM_VERSION );
 			wp_enqueue_script( 'google-jsapi', 	'http://www.google.com/jsapi', array('geo-gears'), SGM_VERSION );
-			wp_enqueue_script( 'simple-gm', 	SGM_URL . '/inc/ressources/simple.gm.min.js', array('google-jsapi'), SGM_VERSION );
+			wp_enqueue_script( 'simple-gm', 	SGM_URL . 'inc/ressources/simple.gm.min.js', array('google-jsapi'), SGM_VERSION );
 			
 			// Translate and region ?
 			$current_settings = get_option( SGM_OPTION );
@@ -229,6 +254,8 @@ class Simple_Post_Gmaps_Admin {
 		$geo_value = get_post_meta( $post->ID, 'geo', true );
 		if ( $geo_value == false )
 			$geo_value = array( 'share_post' => '', 'latitude' => '', 'longitude' => '', 'accuracy' => '', 'address' => '' );
+		else 
+			$geo_value['accuracy'] = (int) $geo_value['accuracy'];
 			
 		if ( !isset($geo_value['share_post']) )
 			$geo_value['share_post'] = '';
@@ -254,7 +281,7 @@ class Simple_Post_Gmaps_Admin {
 			<p class="howto"><?php _e('or click map to pick location', 'simple-post-gmaps'); ?></p>
 			<input type="hidden" class="latitude" 	name="geo[latitude]"  value="<?php echo esc_attr($geo_value['latitude']); ?>"  />
 			<input type="hidden" class="longitude" 	name="geo[longitude]" value="<?php echo esc_attr($geo_value['longitude']); ?>" />
-			<input type="hidden" class="accuracy" 	name="geo[accuracy]"  value="<?php echo intval($geo_value['accuracy']); ?>"  />
+			<input type="hidden" class="accuracy" 	name="geo[accuracy]"  value="<?php echo esc_attr($geo_value['accuracy']); ?>"  />
 			
 			<label>
 				<input <?php checked('1', $geo_value['share_post']); ?> type="checkbox" name="geo[share_post]" class="geo-share-post" value="1" /> 

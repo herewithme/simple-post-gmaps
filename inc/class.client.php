@@ -7,6 +7,13 @@ class Simple_Post_Gmaps_Client {
 	 * @author Amaury Balmer
 	 */
 	function Simple_Post_Gmaps_Client() {
+		// Get settings on DB
+		$current_settings = get_option( SGM_OPTION );
+		
+		if ( !isset($current_settings['tooltip']) && empty($current_settings['tooltip']) ) {
+			$current_settings['tooltip'] = SGM_TOOLTIP;
+		}
+		
 		if ( !is_admin() ) {
 			add_filter( 'the_content', 	array(&$this, 'addGeoMetaHtml'), 2 );
 			
@@ -14,7 +21,11 @@ class Simple_Post_Gmaps_Client {
 			add_action( 'wp_head', 		array(&$this, 'displayGeoMeta') );
 
 			wp_enqueue_script( 'google-jsapi', 	'http://www.google.com/jsapi', array(), SGM_VERSION );
-			wp_enqueue_script( 'geoxml3', 		SGM_URL . '/lib/geoxml3.min.js', array('google-jsapi'), SGM_VERSION );
+			wp_enqueue_script( 'geoxml3', 		SGM_URL . 'lib/geoxml3.min.js', array('google-jsapi'), SGM_VERSION );
+			wp_localize_script( 'geoxml3', 'geoxml3L10n', array(
+				'readmore' => __('Read more', 'simple-post-gmaps'),
+				'tooltip' => $current_settings['tooltip']
+			) );
 		}
 		
 		add_shortcode( 'post-googlemaps', 	array(&$this, 'shortcodePostGmaps') );
@@ -35,6 +46,9 @@ class Simple_Post_Gmaps_Client {
 	function displayGeoMeta() {
 		global $wp_query;
 		
+		// For mobile ?
+		echo "\n\t" . '<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />' . "\n";
+		
 		if ( !is_singular() )
 			return false;
 		
@@ -46,7 +60,7 @@ class Simple_Post_Gmaps_Client {
 		echo "\n\t" . '<meta name="geo.position" content="'.$geo_value['latitude'].';'.$geo_value['longitude'].'" />';
 		echo "\n\t" . '<meta name="geo.placename" content="'.esc_attr($geo_value['address']).'" />';
 		echo "\n\t" . '<meta name="ICBM" content="'.$geo_value['latitude'].';'.$geo_value['longitude'].'" />' . "\n";
-		
+
 		return true;
 	}
 	
@@ -161,6 +175,8 @@ class Simple_Post_Gmaps_Client {
 		if ( !empty($icon_url) ) {
 			$image_def   = 'var image = "'.$icon_url.'";';
 			$image_param = ', icon: image';
+		} else {
+			$image_def = $image_param = '';
 		}
 		
 		$output  = '<div id="map-post-'.$id.'" style="width: '.$width.';height: '.$height.';margin:0 auto;text-align:center;"></div>' . "\n";
@@ -171,6 +187,10 @@ class Simple_Post_Gmaps_Client {
 				var myOptions'.$id.' = {
 					zoom: '.$zoom.',
 					center: myLatlng'.$id.',
+					mapTypeControl: false,
+					mapTypeControlOptions: {style: google.maps.MapTypeControlStyle.DROPDOWN_MENU},
+					navigationControl: false,
+					navigationControlOptions: {style: google.maps.NavigationControlStyle.SMALL},
 					mapTypeId: google.maps.MapTypeId.ROADMAP
 				}
 				
@@ -231,9 +251,12 @@ class Simple_Post_Gmaps_Client {
 				//var myLatlng = new google.maps.LatLng('.$geo_value['latitude'].','.$geo_value['longitude'].');
 				var myOptions = {
 					zoom: '.$zoom.',
-				//	center: myLatlng,
+					// center: myLatlng,
 					mapTypeId: google.maps.MapTypeId.ROADMAP,
-					mapTypeControl: false
+					mapTypeControl: true,
+					//mapTypeControlOptions: {style: google.maps.MapTypeControlStyle.DROPDOWN_MENU},
+					navigationControl: true
+					//navigationControlOptions: {style: google.maps.NavigationControlStyle.SMALL}
 				}
 				var map = new google.maps.Map(document.getElementById("map-global-post"), myOptions);
 				
@@ -257,7 +280,7 @@ class Simple_Post_Gmaps_Client {
 	function getKmlPosts( $orderby = 'p.post_title ASC', $limit = '' ) {
 		global $wpdb;
 		return $wpdb->get_results("
-			SELECT pm.meta_value, p.post_title, p.post_excerpt, p.post_content, pm.post_id
+			SELECT pm.meta_value, p.post_title, p.post_excerpt, p.post_content, pm.post_id, p.ID
 			FROM $wpdb->postmeta AS pm
 			INNER JOIN $wpdb->posts AS p ON pm.post_id = p.ID
 			WHERE meta_key = 'geo'
@@ -299,7 +322,7 @@ class Simple_Post_Gmaps_Client {
 					?>
 					<Placemark>
 						<name><?php echo esc_html($post->post_title); ?></name>
-						<permalink><?php echo get_permalink($post->post_id); ?></permalink>
+						<permalink><?php echo get_permalink($post->ID); ?></permalink>
 						<description><![CDATA[<?php $this->theExcerpt(35); ?>]]></description>
 						<styleUrl>#<?php echo 'ico'.$term_id; ?></styleUrl>
 						<Point>
@@ -358,6 +381,8 @@ class Simple_Post_Gmaps_Client {
 	function addKmlStyles() {
 		$terms = get_categories( 'hide_empty=0' );
 		foreach( (array) $terms as $term ) :
+			if ( !is_file(TEMPLATEPATH . '/gmaps/ico-'.$term->term_id.'.png') )
+				continue;
 			?>
 			<Style id="ico<?php echo $term->term_id; ?>">
 				<IconStyle id="myico<?php echo $term->term_id; ?>">
@@ -379,10 +404,10 @@ class Simple_Post_Gmaps_Client {
 	 */
 	function theExcerpt( $word = 55 ) {
 		global $post;
-		$post->post_excerpt = trim($post->post_excerpt);
 		
+		$post->post_excerpt = trim($post->post_excerpt);
 		if ( empty($post->post_excerpt) ) {
-			echo my_trim_excerpt( $post->post_excerpt, $word );
+			echo $this->my_trim_excerpt( $post->post_content, $word );
 		} else {
 			the_excerpt();
 		}

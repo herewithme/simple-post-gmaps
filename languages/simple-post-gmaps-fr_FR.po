@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Simple Post GMaps 3.0.5\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/simple-post-gmaps\n"
 "POT-Creation-Date: 2010-08-29 16:05+0000\n"
-"PO-Revision-Date: 2010-08-29 18:15+0100\n"
+"PO-Revision-Date: 2010-08-29 18:25+0100\n"
 "Last-Translator: Amaury Balmer <amaury@balmer.fr>\n"
 "Language-Team: Be API <amaury@beapi.fr>\n"
 "MIME-Version: 1.0\n"
@@ -46,7 +46,7 @@ msgstr "Région de Google Maps"
 
 #: inc/class.admin.php:111
 msgid "You can define the default region of Google Maps for improve search results. The <code>region</code> parameter accepts <a href=\"http://www.unicode.org/reports/tr35/#Unicode_Language_and_Locale_Identifiers\">Unicode region subtag identifiers</a> which (generally) have a one-to-one mapping to country code Top-Level Domains (ccTLDs). Most Unicode region identifiers are identical to ISO 3166-1 codes, with some notable exceptions. For example, Great Britain's ccTLD is \"uk\" (corresponding to the domain <code>.co.uk</code>) while its region identifier is \"GB.\""
-msgstr "Vous pouvez définir la région par défaut de Google Maps pour améliorer les résultats de la recherche. Le paramètre <code>region</code> accepte <a href=\"http://www.unicode.org/reports/tr35/#Unicode_Language_and_Locale_Identifiers\">les identifiants Unicode region subtag</a> qui correspondent généralement mot pour mot au nom de domaine de premier niveau du pays (ccTLDs). La plupart des codes régions sont identiques au standard ISO 3166-1 codes, avec quelques exceptions notables. Par exemple, le domaine de premier niveau de la grande bretagne est \"uk\" (correspondant au domaine<code>.co.uk</code>) sera identifié par le code région \"GB.\""
+msgstr "Vous pouvez définir la région par défaut de Google Maps pour améliorer les résultats de la recherche. Le paramètre <code>region</code> accepte <a href=\"http://www.unicode.org/reports/tr35/#Unicode_Language_and_Locale_Identifiers\">les identifiants Unicode region subtag</a> qui correspondent généralement mot pour mot au nom de domaine de premier niveau du pays (ccTLDs). La plupart des codes régions sont identiques au standard ISO 3166-1 codes, avec quelques exceptions notables. Par exemple, le domaine de premier niveau de la Grande-Bretagne est \"uk\" (correspondant au domaine<code>.co.uk</code>) sera identifié par le code région \"GB.\""
 
 #: inc/class.admin.php:115
 msgid "Google Maps Language"
