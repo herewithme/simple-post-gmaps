@@ -16,11 +16,11 @@ This plugin is not free to usage, not open-source, not GPL.
 You can't use and modify this plugin without the permission of Be-API. (amaury@be-api.fr)
 
 Todo :
-	Options :
-		* Region used by Gmaps.
+	- List posts from distance
+	- Use any taxonomy for customize maps
 */
 
-// Folder name
+// Constants
 define ( 'SGM_VERSION', '3.0.5' );
 define ( 'SGM_OPTION',  'simple-post-gmaps' );
 

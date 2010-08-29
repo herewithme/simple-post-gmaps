@@ -16,10 +16,8 @@ class Simple_Post_Gmaps_Admin {
 		add_action ( 'admin_init', array (&$this, 'loadJavascript' ) );
 		add_action ( 'admin_init', array (&$this, 'checkRelations' ) );
 		
-		add_action ( 'add_meta_boxes', array (&$this, 'addMetaBox' ) );
-		add_action ( 'admin_menu', array (&$this, 'addMenu' ) );
-		
-		add_action ( 'save_post',  array (&$this, 'savePost' ) );
+		add_action ( 'add_meta_boxes', 	array (&$this, 'addMetaBox' ) );
+		add_action ( 'admin_menu', 		array (&$this, 'addMenu' ) );
 	}
 	
 	/**
@@ -265,28 +263,6 @@ class Simple_Post_Gmaps_Admin {
 			<br />
 		</div>
 		<?php
-	}
-	
-	/**
-	 * During the save hook, save the geo datas...
-	 *
-	 * @param integer $object_ID
-	 * @param object $object
-	 * @return void
-	 * @author Amaury Balmer
-	 */
-	function savePost( $object_ID = 0 , $object = null ) {
-		$_id = ( intval($object_ID) == 0 ) ? (int) $object->ID : $object_ID;
-		if ( $_id == 0 ) {
-			return false;
-		}
-		
-		if ( isset($_POST['geo']) ) { // Update geo postmeta ?
-			update_post_meta( $_id, 'geo', $_POST['geo'] );
-			return true;
-		}
-		
-		return false;
 	}
 }
 ?>

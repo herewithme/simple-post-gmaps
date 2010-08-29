@@ -12,17 +12,18 @@ class Simple_Post_Gmaps_Client {
 			
 			add_action( 'wp_head', 		array(&$this, 'addGmapsV3Header') );
 			add_action( 'wp_head', 		array(&$this, 'displayGeoMeta') );
-			
-			add_action( 'init', 		array(&$this, 'checkKmlPosts') );
-			
-			add_shortcode( 'post-googlemaps', 	array(&$this, 'shortcodePostGmaps') );
-			add_shortcode( 'global-googlemaps', array(&$this, 'shortcodeGlobalGmaps') );
-			
+
 			wp_enqueue_script( 'google-jsapi', 	'http://www.google.com/jsapi', array(), SGM_VERSION );
-			wp_enqueue_script( 'geoxml3', 		SGM_URL . '/lib/geoxml3.js', array('google-jsapi'), SGM_VERSION );
-			
-			add_filter( 'styles_kml', array(&$this, 'addKmlStyles'), 2 );
+			wp_enqueue_script( 'geoxml3', 		SGM_URL . '/lib/geoxml3.min.js', array('google-jsapi'), SGM_VERSION );
 		}
+		
+		add_shortcode( 'post-googlemaps', 	array(&$this, 'shortcodePostGmaps') );
+		add_shortcode( 'global-googlemaps', array(&$this, 'shortcodeGlobalGmaps') );
+		
+		add_action( 'init', 		array(&$this, 'checkKmlPosts') );
+		add_action( 'save_post', 	array(&$this, 'savePost' ) );
+	
+		add_filter( 'styles_kml', 	array(&$this, 'addKmlStyles'), 2 );
 	}
 	
 	/**
@@ -162,7 +163,6 @@ class Simple_Post_Gmaps_Client {
 			$image_param = ', icon: image';
 		}
 		
-		
 		$output  = '<div id="map-post-'.$id.'" style="width: '.$width.';height: '.$height.';margin:0 auto;text-align:center;"></div>' . "\n";
 		$output .= '<script type="text/javascript">' . "\n";
 			$output .= '<!--' . "\n";
@@ -222,10 +222,7 @@ class Simple_Post_Gmaps_Client {
 			return '<!-- No post with geo meta datas -->';
 		}
 		
-		$geo_value 	= maybe_unserialize($posts[0]->meta_value);
-		$siteurl 	= get_bloginfo('siteurl');
-		if ( substr($siteurl, -1) != '/' )
-			$siteurl .= '/';
+		$geo_value = maybe_unserialize($posts[0]->meta_value);
 		
 		$output  = '<div id="map-global-post" style="width: '.$width.';height: '.$height.';margin:0 auto;text-align:center;"></div>' . "\n";
 		$output .= '<script type="text/javascript">' . "\n";
@@ -241,7 +238,7 @@ class Simple_Post_Gmaps_Client {
 				var map = new google.maps.Map(document.getElementById("map-global-post"), myOptions);
 				
 				var geoXml = new geoXML3.parser({map:map});
-				geoXml.parse("'.$siteurl.'?showposts_kml=true");
+				geoXml.parse("'.home_url('/').'?showposts_kml=true");
 			';
 			$output .= '-->' . "\n";
 		$output .= '</script>' . "\n";
@@ -353,19 +350,19 @@ class Simple_Post_Gmaps_Client {
 	}
 	
 	/**
-	 * Build the KML style with the possibility to customize each icons for each category
+	 * Build the KML style with the possibility to customize each icons for each term
 	 *
 	 * @return void
 	 * @author Amaury Balmer
 	 */
 	function addKmlStyles() {
-		$categories = get_categories( 'hide_empty=0' );
-		foreach( (array) $categories as $category ) :
+		$terms = get_categories( 'hide_empty=0' );
+		foreach( (array) $terms as $term ) :
 			?>
-			<Style id="ico<?php echo $category->term_id; ?>">
-				<IconStyle id="myico<?php echo $category->term_id; ?>">
+			<Style id="ico<?php echo $term->term_id; ?>">
+				<IconStyle id="myico<?php echo $term->term_id; ?>">
 					<Icon>
-						<href><?php bloginfo('template_directory') . '/gmaps/ico-'.$category->term_id.'.png'; ?></href>
+						<href><?php bloginfo('template_directory') . '/gmaps/ico-'.$term->term_id.'.png'; ?></href>
 					</Icon>
 				</IconStyle>
 			</Style>
@@ -418,6 +415,28 @@ class Simple_Post_Gmaps_Client {
 			}
 		}
 		return apply_filters('wp_trim_excerpt', $text, $raw_excerpt);
+	}
+	
+	/**
+	 * During the save hook, save the geo datas...
+	 *
+	 * @param integer $object_ID
+	 * @param object $object
+	 * @return void
+	 * @author Amaury Balmer
+	 */
+	function savePost( $object_ID = 0 , $object = null ) {
+		$_id = ( intval($object_ID) == 0 ) ? (int) $object->ID : $object_ID;
+		if ( $_id == 0 ) {
+			return false;
+		}
+		
+		if ( isset($_POST['geo']) ) { // Update geo postmeta ?
+			update_post_meta( $_id, 'geo', $_POST['geo'] );
+			return true;
+		}
+		
+		return false;
 	}
 }
 ?>

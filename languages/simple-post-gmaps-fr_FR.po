@@ -1,0 +1,146 @@
+# Translation of the WordPress plugin Simple Post GMaps 3.0.5 by Be API.
+# Copyright (C) 2010 Be API
+# This file is distributed under the same license as the Simple Post GMaps package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Simple Post GMaps 3.0.5\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/tag/simple-post-gmaps\n"
+"POT-Creation-Date: 2010-08-29 16:05+0000\n"
+"PO-Revision-Date: 2010-08-29 18:15+0100\n"
+"Last-Translator: Amaury Balmer <amaury@balmer.fr>\n"
+"Language-Team: Be API <amaury@beapi.fr>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: French\n"
+"X-Poedit-Country: France\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: inc/class.admin.php:32
+msgid "Simple Post Gmaps"
+msgstr "Simple Post Gmaps"
+
+#: inc/class.admin.php:32
+msgid "Maps"
+msgstr "Cartes"
+
+#: inc/class.admin.php:64
+msgid "Simple Post Gmaps : Settings"
+msgstr "Simple Post Gmaps : Réglages"
+
+#: inc/class.admin.php:71
+#: inc/class.admin.php:77
+msgid "Custom type"
+msgstr "Type de contenu"
+
+#: inc/class.admin.php:72
+#: inc/class.admin.php:78
+msgid "Active Maps ?"
+msgstr "Activer la géolocalisation ?"
+
+#: inc/class.admin.php:108
+msgid "Google Maps Region"
+msgstr "Région de Google Maps"
+
+#: inc/class.admin.php:111
+msgid "You can define the default region of Google Maps for improve search results. The <code>region</code> parameter accepts <a href=\"http://www.unicode.org/reports/tr35/#Unicode_Language_and_Locale_Identifiers\">Unicode region subtag identifiers</a> which (generally) have a one-to-one mapping to country code Top-Level Domains (ccTLDs). Most Unicode region identifiers are identical to ISO 3166-1 codes, with some notable exceptions. For example, Great Britain's ccTLD is \"uk\" (corresponding to the domain <code>.co.uk</code>) while its region identifier is \"GB.\""
+msgstr "Vous pouvez définir la région par défaut de Google Maps pour améliorer les résultats de la recherche. Le paramètre <code>region</code> accepte <a href=\"http://www.unicode.org/reports/tr35/#Unicode_Language_and_Locale_Identifiers\">les identifiants Unicode region subtag</a> qui correspondent généralement mot pour mot au nom de domaine de premier niveau du pays (ccTLDs). La plupart des codes régions sont identiques au standard ISO 3166-1 codes, avec quelques exceptions notables. Par exemple, le domaine de premier niveau de la grande bretagne est \"uk\" (correspondant au domaine<code>.co.uk</code>) sera identifié par le code région \"GB.\""
+
+#: inc/class.admin.php:115
+msgid "Google Maps Language"
+msgstr "Langue de Google Maps"
+
+#: inc/class.admin.php:118
+msgid "You can define the language of Google Maps interface. Use <a href=\"http://spreadsheets.google.com/pub?key=p9pdwsai2hDMsLkXsoM05KQ&gid=1\">this Google page of documentation</a> for find your code language. Example : French, put \"fr\""
+msgstr "Vous pouvez définir la langue de l'interface Google Maps. Utilisez <a href=\"http://spreadsheets.google.com/pub?key=p9pdwsai2hDMsLkXsoM05KQ&gid=1\">cette page de la documentation Google</a> pour trouver le code correspondant à votre langue. Exemple pour le français, saisissez \"fr\""
+
+#: inc/class.admin.php:125
+msgid "Save settings"
+msgstr "Enregistrer les réglages"
+
+#: inc/class.admin.php:149
+msgid "Settings updated with success !"
+msgstr "Réglages mis à jour avec succès !"
+
+#: inc/class.admin.php:219
+msgid "Location"
+msgstr "Localisation"
+
+#: inc/class.admin.php:240
+msgid "Enter address:"
+msgstr "Saisir l'adresse :"
+
+#: inc/class.admin.php:241
+msgid "Ico refreshing"
+msgstr "Icône d'actualisation"
+
+#: inc/class.admin.php:246
+msgid "Auto Detect"
+msgstr "Détection automatique"
+
+#: inc/class.admin.php:247
+msgid "Find Address"
+msgstr "Trouver l'adresse"
+
+#: inc/class.admin.php:252
+msgid "<code>San Francisco, CA</code>, <code>Espagne</code>, <code>1600 Pennsylvania Ave, Washington DC, USA</code>, <code>N 24 9.256, W 110 19.358</code>"
+msgstr "<code>San Francisco, CA</code>, <code>Espagne</code>, <code>1600 Pennsylvania Ave, Washington DC, USA</code>, <code>N 24 9.256, W 110 19.358</code>"
+
+#: inc/class.admin.php:256
+msgid "or click map to pick location"
+msgstr "ou cliquez sur la carte pour choisir une destination"
+
+#: inc/class.admin.php:263
+msgid "This post's location is public"
+msgstr "La localisation de l'article est publique"
+
+#: inc/class.client.php:288
+#: inc/class.client.php:289
+msgid "All posts on Gmaps"
+msgstr "Tous les articles sur Google Maps"
+
+#: inc/class.widget.php:16
+msgid "Related Maps for Post"
+msgstr "Carte relative à l'article"
+
+#: inc/class.widget.php:16
+msgid "Display the google maps of relative post on singular view."
+msgstr "Afficher la carte Google Maps d'un article sur la vue détaillée."
+
+#: inc/class.widget.php:89
+msgid "Title:"
+msgstr "Titre :"
+
+#: inc/class.widget.php:93
+msgid "Width:"
+msgstr "Largeur :"
+
+#: inc/class.widget.php:97
+msgid "Height:"
+msgstr "Hauteur :"
+
+#: inc/class.widget.php:101
+msgid "Zoom:"
+msgstr "Zoom :"
+
+#. Plugin Name of the plugin/theme
+msgid "Simple Post GMaps"
+msgstr "Simple Post GMaps"
+
+#. #-#-#-#-#  plugin.pot (Simple Post GMaps 3.0.5)  #-#-#-#-#
+#. Plugin URI of the plugin/theme
+#. #-#-#-#-#  plugin.pot (Simple Post GMaps 3.0.5)  #-#-#-#-#
+#. Author URI of the plugin/theme
+msgid "http://www.beapi.fr"
+msgstr "http://www.beapi.fr"
+
+#. Description of the plugin/theme
+msgid "Allow to geolocalise post with Google Maps (API in v3). No google maps key are required. You can choose with the map the position of the post on admin. You can use shortcode for display the map, or the widget. You can also display a maps with each posts localized on the same maps !"
+msgstr "Permet la géolocalisation des articles avec Google Maps (API en v3). Aucune clef Google Maps n'est requise. Vous pouvez choisir la position d'un article depuis une carte dans l'administration. Vous pouvez utiliser un shortcode pour afficher la carte, ou un widget. Vous pouvez aussi affiche une carte avec tous les articles localisés sur la même carte Google Maps !"
+
+#. Author of the plugin/theme
+msgid "Be API"
+msgstr "Be API"
+

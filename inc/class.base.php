@@ -13,6 +13,14 @@ class Simple_Post_Gmaps_Base {
 	 * @author Amaury Balmer
 	 */
 	function activate() {
+		global $locale;
+		
+		$new_options = array();
+		$new_options['custom-types'] 	= array('post');
+		$new_options['language'] 		= substr($locale, 0, 2);
+		$new_options['region'] 			= substr($locale, 3, 2);
+		
+		add_option( SGM_OPTION, $new_options );
 	}
 	
 	/**
