@@ -1,0 +1,47 @@
+.postbox .geo-map {
+	margin: 6px auto;
+}
+.geo-address, #profile-page .form-table input.geo-address {
+	width: 100%;
+}
+.form-table .geo-form p {
+	margin: 6px;
+}
+.geo-form td {
+	vertical-align: top;
+}
+/* For API */
+.geo-map {
+	width: 255px;
+	height: 255px;
+}
+.hide-if-no-geo, .geo-type {
+	display: none;
+}
+.geo-throbber {
+	visibility: hidden;
+	vertical-align: middle;
+}
+.show-if-no-js {
+	display: auto;
+}
+
+<!--[if lt IE 8]>
+.postbox .geo-map {
+margin-top: 0;
+border-top: 10px solid #fff;
+}
+<![endif]-->
+
+#my-location .geo-form {
+margin-top: 1em;
+}
+#my-location p:first-of-type {
+margin: 0;
+}
+#my-location p, #my-location div.geo-type {
+margin: 1em 0;
+}
+#my-location .geo-map {
+margin: 1em auto;
+}
