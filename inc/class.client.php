@@ -1,6 +1,6 @@
 <?php
 class Simple_Post_Gmaps_Client {
-
+	
 	var $longitude = null;
 	var $latitude = null;
 	
@@ -23,7 +23,7 @@ class Simple_Post_Gmaps_Client {
 			
 			add_action( 'wp_head', 		array(&$this, 'addGmapsV3Header') );
 			add_action( 'wp_head', 		array(&$this, 'displayGeoMeta') );
-
+			
 			wp_enqueue_script( 'google-jsapi', 	'http://www.google.com/jsapi', array(), SGM_VERSION );
 			wp_enqueue_script( 'geoxml3', 		SGM_URL . 'lib/geoxml3.min.js', array('google-jsapi'), SGM_VERSION );
 			wp_localize_script( 'geoxml3', 'geoxml3L10n', array(
@@ -40,8 +40,8 @@ class Simple_Post_Gmaps_Client {
 		
 		add_action( 'init', 		array(&$this, 'checkKmlPosts') );
 		add_action( 'save_post', 	array(&$this, 'savePost' ) );
-		add_action( 'deleted_post',	array(&$this, 'deletedPost' ) );		
-	
+		add_action( 'deleted_post',	array(&$this, 'deletedPost' ) );
+		
 		add_filter( 'styles_kml', 	array(&$this, 'addKmlStyles'), 2 );
 	}
 	
@@ -68,7 +68,7 @@ class Simple_Post_Gmaps_Client {
 		echo "\n\t" . '<meta name="geo.position" content="'.$geo_value['latitude'].';'.$geo_value['longitude'].'" />';
 		echo "\n\t" . '<meta name="geo.placename" content="'.esc_attr($geo_value['address']).'" />';
 		echo "\n\t" . '<meta name="ICBM" content="'.$geo_value['latitude'].';'.$geo_value['longitude'].'" />' . "\n";
-
+		
 		return true;
 	}
 	
@@ -107,7 +107,7 @@ class Simple_Post_Gmaps_Client {
 		$args = '';
 		if ( isset($current_settings['region']) && !empty($current_settings['region']) )
 			$args .= '&region='.$current_settings['region'];
-			
+		
 		if ( isset($current_settings['language']) && !empty($current_settings['language']) )
 			$args .= '&language='.$current_settings['language'];
 		
@@ -347,8 +347,8 @@ class Simple_Post_Gmaps_Client {
 	/**
 	 * Get the first term from a post/taxonomy, allow to choose the output return...
 	 *
-	 * @param string $taxonomy 
-	 * @param string $output 
+	 * @param string $taxonomy
+	 * @param string $output
 	 * @return integer|string|object
 	 * @author Amaury Balmer
 	 */
@@ -463,74 +463,73 @@ class Simple_Post_Gmaps_Client {
 		if ( $_id == 0 )
 			return false;
 		
-		$post = get_post( $object_ID, ARRAY_A );
-		if( $post['post_status'] != 'publish' )
-			return true;
-
-		if ( isset( $_POST['geo'] ) ) { // Update geo postmeta ?
-			$this->savePostMerge( $_id, $_POST['geo'] );
+		if ( isset( $_POST['geo'] ) ) {
+			// Always save post meta datas, also draft
+			update_post_meta( $_id, 'geo', $_POST['geo'] );
+			
+			if ( get_post_status($_id) == 'publish' )
+				$this->savePostMerge( $_id, $_POST['geo'] );
+			
+			return true
 		}
-
+		
 		return false;
 	}
 	
 	/**
 	 * Save the post meta's and in the table
-	 * 
+	 *
 	 * @access public
 	 * @param mixed $post_id
 	 * @param mixed $datas
 	 * @return void
 	 * @author Nicolas Juen
 	 */
-	function savePostMerge( $post_id, $datas ){
-		$meta = update_post_meta( $post_id, 'geo', $datas );
-
+	function savePostMerge( $post_id, $datas ) {
 		global $wpdb;
-		$get = $wpdb->get_results( 'SELECT `long`,`lat` FROM `'.$wpdb->simple_post_gmaps.'` WHERE post_id='.$post_id );		
-
-		if( empty( $get ) )
-			$query = $wpdb->insert( $wpdb->simple_post_gmaps, array( 'post_id' => $post_id, 'long' => $datas['longitude'], 'lat' => $datas['latitude'] ) ,array( '%d','%f','%f' ) );
-
-		if( rtrim( $get[0]->lat, '0' ) != rtrim( $datas['latitude'], '0' ) || rtrim( $get[0]->long, '0' ) != rtrim( $datas['longitude'], '0' ) )
+		
+		$result = $wpdb->get_row( $wpdb->prepare("SELECT long, lat FROM $wpdb->simple_post_gmaps WHERE post_id = %d", $post_id) );
+		
+		if ( $result == false )
+			$query = $wpdb->insert( $wpdb->simple_post_gmaps, array( 'post_id' => $post_id, 'long' => $datas['longitude'], 'lat' => $datas['latitude'] ), array( '%d','%f','%f' ) );
+		
+		if ( rtrim( $result->lat, '0' ) != rtrim( $datas['latitude'], '0' ) || rtrim( $result->long, '0' ) != rtrim( $datas['longitude'], '0' ) )
 			$query = $wpdb->update( $wpdb->simple_post_gmaps, array( 'long' => $datas['longitude'], 'lat' => $datas['latitude'] ), array( 'post_id' => $post_id ) , array( '%f','%f' ), array( '%d' ) );
 		
-		if( $datas['latitude'] == '0' && $datas['longitude'] )
+		if ( $datas['latitude'] == '0' && $datas['longitude'] )
 			$query = $this->deletedPost( $post_id );
-
-		if( !$meta || !$query )
+		
+		if ( !$meta || !$query )
 			return false;
-
+		
 		return true;
 	}
 	
 	/**
 	 * Delete in the gmaps table when deleting the post
-	 * 
+	 *
 	 * @access public
 	 * @param int $post_id. (default: 0)
 	 * @return void
 	 * @author Nicolas Juen
 	 */
-	function deletedPost( $post_id = 0 ){
-		if( $post_id == 0 )
+	function deletedPost( $post_id = 0 ) {
+		if ( $post_id == 0 )
 			return false;
 		
-		global $wpdb;	
-		return $wpdb->query( $wpdb->prepare( 'DELETE FROM '.$wpdb->simple_post_gmaps.' WHERE post_id = %d', $post_id ) );
+		global $wpdb;
+		return $wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->simple_post_gmaps WHERE post_id = %d", $post_id ) );
 	}
 	
 	/**
-	 * addQueryVar function.
-	 * 
+	 * Add latitude and longitude query_var
+	 *
 	 * @access public
-	 * @param mixed $wp_query_var
-	 * @return void
+	 * @param array $wp_query_var
+	 * @return array
 	 * @author Nicolas Juen
 	 */
 	function addQueryVar( $wp_query_var ) {
-		
-		// Add latitude and longitude
 		$wp_query_var[] = 'latitude';
 		$wp_query_var[] = 'longitude';
 		
@@ -539,55 +538,53 @@ class Simple_Post_Gmaps_Client {
 	
 	/**
 	 * Add the actions if the longitude and latitude are given
-	 * 
+	 *
 	 * @access public
 	 * @return void
 	 * @author Nicolas Juen
 	 */
 	function parseQuery( $query ) {
-		
-		// Get options
 		$this->latitude = $query->query_vars['latitude'];
 		$this->longitude = $query->query_vars['longitude'];
 		
-		if ( empty( $this->latitude ) || empty( $this->longitude ) || $query->query_vars['orderby'] != 'distance' )
+		if ( empty($this->latitude) || empty($this->longitude) || $query->query_vars['orderby'] != 'distance' )
 			return $query;
-			
-		//Fix the query
-		add_action( 'pre_get_posts', array(&$this, 'fixQueryFlags') );			
 		
-		//Add distance field
+		// Fix the query
+		add_action( 'pre_get_posts', array(&$this, 'fixQueryFlags') );
+		
+		// Add distance field
 		add_action( 'posts_fields_request', array( &$this, 'buildQueryFields' ), 10, 2 );
 		
-		//Add the join part
+		// Add the join part
 		add_action( 'posts_join_request', array( &$this, 'buildQueryJoin' ), 10, 2 );
 		
-		//Add order by distance ASC
+		// Add order by distance ASC
 		add_action( 'posts_orderby_request', array( &$this, 'buildQueryOrder' ), 10, 2 );
 	}
-
+	
 	/**
-	 * Fix the query flags in case of fitlering
-	 * 
+	 * Fix the query flags in case of filtering
+	 *
 	 * @access public
 	 * @param mixed $query
 	 * @return void
 	 * @author Nicolas Juen
 	 */
 	function fixQueryFlags( $query ) {
-		//Remove useless parts
 		$query->is_tax = false;
 		$query->is_category = false;
 		$query->is_distance = true;
-
-		if ( empty( $query->query_vars['post_type'] ) )
+		
+		if ( empty( $query->query_vars['post_type'] ) ) // Why ?
 			$query->query_vars['post_type'] = 'any';
-		$query->query_vars['category__in'] = '';
+		
+		$query->query_vars['category__in'] = ''; // Why ?
 	}
 	
 	/**
-	 * Add the join in the query
-	 * 
+	 * Join with the GPS coordinates table
+	 *
 	 * @access public
 	 * @param string $join. (default: '')
 	 * @param mixed $current_query
@@ -596,46 +593,39 @@ class Simple_Post_Gmaps_Client {
 	 */
 	function buildQueryJoin( $join = '', $current_query ) {
 		global  $wpdb;
-		
-		//Join with the GPS coordinates table
+
 		$join .= ' INNER JOIN '.$wpdb->simple_post_gmaps.' ON ( '.$wpdb->simple_post_gmaps.'.post_id = '.$wpdb->prefix.'posts.ID )';
-		
 		return $join;
 	}
 	
 	/**
 	 * Add the distance calculation to the fields as distance
-	 * 
+	 *
 	 * @access public
 	 * @param string $fields. (default: '')
 	 * @param mixed $current_query
 	 * @return void
 	 * @author Nicolas Juen
 	 */
-	function buildQueryFields( $fields = '', $current_query ){
-		global  $wpdb;
+	function buildQueryFields( $fields = '', $current_query ) {
+		global $wpdb;
 		
 		$fields .= ', round((ACOS(COS(RADIANS('.$wpdb->simple_post_gmaps.'.lat))*COS(RADIANS('.$this->latitude.'))*COS(RADIANS('.$this->longitude.')-RADIANS('.$wpdb->simple_post_gmaps.'.long))+SIN(RADIANS('.$this->latitude.'))*SIN(RADIANS('.$wpdb->simple_post_gmaps.'.lat)))*6366),2) AS `distance`';
-
-	return $fields;	
+		return $fields;
 	}
 	
 	/**
-	 * Add ditstance to the order
-	 * 
+	 * Replace order by SQL by distance. hardcoded because WP not allow any value...
+	 *
 	 * @access public
 	 * @param string $order_by. (default: '')
-	 * @param mixed $current_query
-	 * @return void
+	 * @param object $current_query
+	 * @return string
 	 * @author Nicolas Juen
 	 */
 	function buildQueryOrder( $order_by = '', $current_query ) {
-		
-		//Overwrite the order_by
 		$order_by = 'distance';
-
-		return $order_by;		
-	}	
-		
+		return $order_by;
+	}
 }
 ?>
