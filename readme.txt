@@ -4,7 +4,7 @@ Donate link: http://www.beapi.fr/donate/
 Tags : google, maps, googlemaps, simple series, map, geo, geolocalize, localisation
 Requires at least: 3.0
 Tested up to: 3.0.1
-Stable tag: 3.0.5
+Stable tag: 3.0.6
 
 == Description ==
 
@@ -14,6 +14,7 @@ You can choose with the map the position of the post on admin.
 You can use shortcode for display the map, or the widget. You can also display a maps with each posts localized on the same maps !
 
 For full info go the [Simple Post Gmaps](http://redmine.beapi.fr/projects/show/simple-googlemaps) page.
+Read the sample file for an example of query.
 
 == Installation ==
 
@@ -22,7 +23,10 @@ For full info go the [Simple Post Gmaps](http://redmine.beapi.fr/projects/show/s
 3. Go to Settings > Maps and follow the steps on the [Simple Post Gmaps](http://redmine.beapi.fr/projects/show/simple-googlemaps) page.
 
 == Changelog ==
-
+* 3.0.6
+	* Add a table at plugin activation for queries
+	* Add possibility to get posts by latitude and longitude coordinates ordered by distance( distance in km )
+	* Meta are merged with the table data's
 * 3.0.5
 	* Fix a bug with javascript recursive loop
 * 3.0.4
