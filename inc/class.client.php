@@ -467,17 +467,17 @@ class Simple_Post_Gmaps_Client {
 			// Always save post meta datas, also draft
 			update_post_meta( $_id, 'geo', $_POST['geo'] );
 			
-			if ( get_post_status($_id) == 'publish' )
+			if ( get_post_status( $_id ) == 'publish' )
 				$this->savePostMerge( $_id, $_POST['geo'] );
 			
-			return true
+			return true;
 		}
 		
 		return false;
 	}
 	
 	/**
-	 * Save the post meta's and in the table
+	 * Save the post meta's in the table
 	 *
 	 * @access public
 	 * @param mixed $post_id
@@ -488,7 +488,7 @@ class Simple_Post_Gmaps_Client {
 	function savePostMerge( $post_id, $datas ) {
 		global $wpdb;
 		
-		$result = $wpdb->get_row( $wpdb->prepare("SELECT long, lat FROM $wpdb->simple_post_gmaps WHERE post_id = %d", $post_id) );
+		$result = $wpdb->get_row( $wpdb->prepare( "SELECT long, lat FROM $wpdb->simple_post_gmaps WHERE post_id = %d", $post_id ) );
 		
 		if ( $result == false )
 			$query = $wpdb->insert( $wpdb->simple_post_gmaps, array( 'post_id' => $post_id, 'long' => $datas['longitude'], 'lat' => $datas['latitude'] ), array( '%d','%f','%f' ) );
@@ -499,7 +499,7 @@ class Simple_Post_Gmaps_Client {
 		if ( $datas['latitude'] == '0' && $datas['longitude'] )
 			$query = $this->deletedPost( $post_id );
 		
-		if ( !$meta || !$query )
+		if ( !$query )
 			return false;
 		
 		return true;
@@ -544,8 +544,10 @@ class Simple_Post_Gmaps_Client {
 	 * @author Nicolas Juen
 	 */
 	function parseQuery( $query ) {
-		$this->latitude = $query->query_vars['latitude'];
-		$this->longitude = $query->query_vars['longitude'];
+		
+		
+		$this->latitude = isset( $query->query_vars['latitude'] ) ? $query->query_vars['latitude'] : null ;
+		$this->longitude = isset( $query->query_vars['longitude'] ) ? $query->query_vars['longitude'] : null ;
 		
 		if ( empty($this->latitude) || empty($this->longitude) || $query->query_vars['orderby'] != 'distance' )
 			return $query;
@@ -575,11 +577,6 @@ class Simple_Post_Gmaps_Client {
 		$query->is_tax = false;
 		$query->is_category = false;
 		$query->is_distance = true;
-		
-		if ( empty( $query->query_vars['post_type'] ) ) // Why ?
-			$query->query_vars['post_type'] = 'any';
-		
-		$query->query_vars['category__in'] = ''; // Why ?
 	}
 	
 	/**
@@ -624,8 +621,7 @@ class Simple_Post_Gmaps_Client {
 	 * @author Nicolas Juen
 	 */
 	function buildQueryOrder( $order_by = '', $current_query ) {
-		$order_by = 'distance';
-		return $order_by;
+		return 'distance';
 	}
 }
 ?>
