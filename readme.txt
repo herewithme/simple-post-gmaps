@@ -4,7 +4,7 @@ Donate link: http://www.beapi.fr/donate/
 Tags : google, maps, googlemaps, simple series, map, geo, geolocalize, localisation
 Requires at least: 3.0
 Tested up to: 3.0.1
-Stable tag: 3.0.7
+Stable tag: 3.0.8
 
 == Description ==
 
@@ -23,6 +23,9 @@ Read the sample file for an example of query.
 3. Go to Settings > Maps and follow the steps on the [Simple Post Gmaps](http://redmine.beapi.fr/projects/show/simple-googlemaps) page.
 
 == Changelog ==
+
+* 3.0.8
+	* Fix a bug with edition of custom type and registering Javascript/CSS
 * 3.0.7
 	* Only insert in table at post publish
 	* Some minor bug fix

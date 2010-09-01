@@ -197,13 +197,19 @@ class Simple_Post_Gmaps_Admin {
 	function loadJavascript() {
 		global $pagenow;
 		
+		if ( !in_array( $pagenow, array('post.php', 'post-new.php') ) )
+			return false;
+		
 		// Get settings on DB
 		$current_settings = get_option( SGM_OPTION );
-	
-		// Current post type
-		$post_type = ( !isset($_GET['post_type']) ) ? 'post' : stripslashes($_GET['post_type']);
-
-		if ( in_array( $pagenow, array('post.php', 'post-new.php') ) && in_array( $post_type, (array) $current_settings['custom-types'] ) ) {
+		
+		if ( isset($_GET['post']) ) { // Edition
+			$post_type = get_post_type($_GET['post']);
+		} else { // Add ?
+			$post_type = ( !isset($_GET['post_type']) ) ? 'post' : stripslashes($_GET['post_type']);
+		}
+		
+		if ( in_array( $post_type, (array) $current_settings['custom-types'] ) ) {
 			wp_enqueue_style ( 'simple-gm', SGM_URL . 'inc/ressources/simple.gm.css', array(), SGM_VERSION, 'all' );
 			
 			wp_enqueue_script( 'geo-location', 	SGM_URL . 'inc/ressources/geo-location.min.js', array('jquery'), SGM_VERSION );
