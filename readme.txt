@@ -4,7 +4,7 @@ Donate link: http://www.beapi.fr/donate/
 Tags : google, maps, googlemaps, simple series, map, geo, geolocalize, localisation
 Requires at least: 3.0
 Tested up to: 3.0.1
-Stable tag: 3.0.8
+Stable tag: 3.0.9
 
 == Description ==
 
@@ -24,6 +24,8 @@ Read the sample file for an example of query.
 
 == Changelog ==
 
+* 3.0.9
+	* Add possibility to not add the hidden coordinates a the end of posts
 * 3.0.8
 	* Fix a bug with edition of custom type and registering Javascript/CSS
 * 3.0.7
