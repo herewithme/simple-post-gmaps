@@ -1,5 +1,5 @@
 === Simple Post GMaps ===
-Contributors: momo360modena
+Contributors: momo360modena, rahe
 Donate link: http://www.beapi.fr/donate/
 Tags : google, maps, googlemaps, simple series, map, geo, geolocalize, localisation
 Requires at least: 3.0
