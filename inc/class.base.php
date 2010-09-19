@@ -13,17 +13,17 @@ class Simple_Post_Gmaps_Base {
 	 * @author Amaury Balmer
 	 */
 	function activate() {
-		global $locale;
+		global $locale, $wpdb;
 		
+		// Add option ?
 		$new_options = array();
 		$new_options['custom-types'] 	= array( 'post' );
 		$new_options['language'] 		= substr( $locale, 0, 2 );
 		$new_options['region'] 			= substr( $locale, 3, 2 );
 		$new_options['tooltip'] 		= SGM_TOOLTIP;
+		add_option( SGM_OPTION, $new_options );
 		
-		
-		global $wpdb;
-		
+		// Create table ?
 		if ( ! empty($wpdb->charset) )
 			$charset_collate = "DEFAULT CHARACTER SET $wpdb->charset";
 		if ( ! empty($wpdb->collate) )
@@ -34,13 +34,11 @@ class Simple_Post_Gmaps_Base {
 
 		// Try to create the meta table
 		maybe_create_table( $wpdb->simple_post_gmaps, "CREATE TABLE ".$wpdb->simple_post_gmaps." (
-				`post_id` INT(20) NOT NULL ,
-				`long` DECIMAL( 11,8 ) NOT NULL,
-				`lat` DECIMAL( 11,8 ) NOT NULL,
-				UNIQUE KEY ( `post_id` )
+			`post_id` INT(20) NOT NULL ,
+			`long` DECIMAL( 11,8 ) NOT NULL,
+			`lat` DECIMAL( 11,8 ) NOT NULL,
+			UNIQUE KEY ( `post_id` )
 		) $charset_collate;" );
-		
-		add_option( SGM_OPTION, $new_options );
 	}
 	
 	/**

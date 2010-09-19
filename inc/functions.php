@@ -34,39 +34,35 @@ function get_post_googlemaps( $id = 0, $width = '400px', $height = '300px', $lat
 	return $spgm_obj['client']->buildPostGmaps( $id, $width, $height, $latitude, $longitude, $zoom, $title );
 }
 
-function getCurrentCoords(){
-	$data = "http://geoiptool.com/data.php?IP=".getCurrentIp();
-	
-	//Get the xml result
-    $ch = curl_init();
-	curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-	curl_setopt( $ch, CURLOPT_URL, $data );
-	$result = curl_exec( $ch );
-	curl_close( $ch );
-	
+/**
+ * Call a external webservice for find the GPS coordinates of the current user, from the IP.
+ *
+ * @return void
+ * @author Amaury Balmer
+ */
+function get_current_coordinates() {
+	$result = wp_remote_get( "http://geoiptool.com/data.php?IP=".$_SERVER['REMOTE_ADDR'] . $hostname, array( 'timeout' => 5, 'httpversion' => '1.1' ) );
+	if ( is_wp_error( $result ) )
+		return false;
+
 	// Test the result
-	if( empty( $result ) )
+	if( wp_remote_retrieve_body($result) == '' )
 		return false;
 
-	//Transform the result into an xml object
-	$data = simplexml_load_string( $result );
-	if( empty( $data ) )
+	// Transform the result into an xml object
+	$data = simplexml_load_string( wp_remote_retrieve_body($result) );
+	if( $data == false )
+		return false;
+
+	// Get the latitude and longitude data's
+	$lat = (string) $data->marker[0]->attributes()->lat;
+	$lng = (string) $data->marker[0]->attributes()->lng;
+	
+	// If one of the data's is empty return false
+	if( empty($lat) || empty($lng) )
 		return false;
 	
-	//Get the latitude and longitude data's
-	$lat = (string)$data->marker[0]->attributes()->lat;
-	$lng = (string)$data->marker[0]->attributes()->lng;
-	
-	//If one of the data's is empty return false
-	if( empty( $lat ) || empty( $lng ) )
-		return false;
-	
-	//Return the results
+	// Return the results
 	return array( 'latitude' => $lat, 'longitude' => $lng );
-	
-}
-
-function getCurrentIp(){
-	return $_SERVER['REMOTE_ADDR'];
 }
 ?>

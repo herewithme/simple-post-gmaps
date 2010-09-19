@@ -1,8 +1,7 @@
 <?php
 class Simple_Post_Gmaps_Client {
-
 	var $longitude = null;
-	var $latitude = null;
+	var $latitude  = null;
 	
 	/**
 	 * Constructor...
@@ -40,11 +39,13 @@ class Simple_Post_Gmaps_Client {
 		add_shortcode( 'global-googlemaps', array(&$this, 'shortcodeGlobalGmaps') );
 		
 		add_action( 'init', 		array(&$this, 'checkKmlPosts') );
+		
+		// Keep update geo table
 		add_action( 'save_post', 	array(&$this, 'savePost' ) );
-		add_action( 'deleted_post',	array(&$this, 'deletedPost' ) );		
-	
+		add_action( 'deleted_post',	array(&$this, 'deletedPost' ) );
+		
 		add_filter( 'styles_kml', 	array(&$this, 'addKmlStyles'), 2 );
-		add_filter( 'list_terms_exclusions',     array( &$this, 'hide_empty'), 10, 2);
+		add_filter( 'list_terms_exclusions',     array( &$this, 'hideEmpty'), 10, 2);
 	}
 	
 	/**
@@ -70,7 +71,7 @@ class Simple_Post_Gmaps_Client {
 		echo "\n\t" . '<meta name="geo.position" content="'.$geo_value['latitude'].';'.$geo_value['longitude'].'" />';
 		echo "\n\t" . '<meta name="geo.placename" content="'.esc_attr($geo_value['address']).'" />';
 		echo "\n\t" . '<meta name="ICBM" content="'.$geo_value['latitude'].';'.$geo_value['longitude'].'" />' . "\n";
-
+		
 		return true;
 	}
 	
@@ -82,10 +83,10 @@ class Simple_Post_Gmaps_Client {
 	 * @author Amaury Balmer
 	 */
 	function addGeoMetaHtml( $post_content ) {
-	
+		
 		// Get settings on DB
 		$current_settings = get_option( SGM_OPTION );
-		if( $current_settings['hidden_coordinates'] == 1 )
+		if ( $current_settings['hidden_coordinates'] == 1 )
 			return $post_content;
 		
 		global $post;
@@ -114,7 +115,7 @@ class Simple_Post_Gmaps_Client {
 		$args = '';
 		if ( isset( $current_settings['region'] ) && !empty( $current_settings['region'] ) )
 			$args .= '&region='.$current_settings['region'];
-			
+		
 		if ( isset( $current_settings['language'] ) && !empty( $current_settings['language'] ) )
 			$args .= '&language='.$current_settings['language'];
 		
@@ -243,44 +244,43 @@ class Simple_Post_Gmaps_Client {
 		
 		return $this->buildGlobalMaps( $width, $height, $zoom, $taxonomy, $post_type );
 	}
-	
 
-   /**
-    * Hide terms without posts with gmaps
-    * 
-    * @access public
-    * @param mixed $exclusion
-    * @param mixed $_args
-    * @return void
-   	* @author Julien Guilmont & Nicolas Juen
-    */
-   function hide_empty($exclusion, $_args) {
-       
-       	if( !isset( $_args['gmaps'] ) )
-           return $exclusion;
 
-		$terms = get_terms( $_args['gmaps'] );
+	/**
+	 * Hide terms without posts with gmaps
+	 *
+	 * @access public
+	 * @param mixed $exclusion
+	 * @param mixed $_args
+	 * @return void
+	 * @author Julien Guilmont & Nicolas Juen
+	 */
+	function hideEmpty( $exclusion, $_args ) {
+		if ( !isset( $_args['gmaps'] ) )
+			return $exclusion;
+
+		// Posts with geo ?
 		$posts_id = $this->getKmlPosts( array( 'orderby' => 'title','order' => 'ASC' ), '', '', true );
-		
-		if( empty( $posts_id ) )
+		if ( empty( $posts_id ) )
 			return $exclusion;
 		
+		// Get all terms...
+		$terms = get_terms( $_args['gmaps'] );
 		foreach( $terms as $term ){
-			$posts_in = get_objects_in_term( $term->term_id, $_args['gmaps'] );
-			$diff = array_diff( $posts_id, $posts_in );
-			if( count( $diff ) == count( $posts_id ) ){
-				if( isset($exclusion_cat) )
-				    $exclusion_cat .= ' AND t.term_id <> ' . $term->term_id;
+			if ( count(array_diff($posts_id, get_objects_in_term( $term->term_id, $_args['gmaps'] ))) == count($posts_id) ) {
+				if ( isset($exclusion_cat) )
+					$exclusion_cat .= ' AND t.term_id <> ' . $term->term_id;
 				else
-				    $exclusion_cat = ' AND ( t.term_id <> ' . $term->term_id;
-			}			
+					$exclusion_cat  = ' AND ( t.term_id <> ' . $term->term_id;
+			}
 		}
-       if( isset($exclusion_cat) )
-           $exclusion_cat .= ' )';
+		
+		if ( isset($exclusion_cat) )
+			$exclusion_cat .= ' )';
+		
+		return $exclusion . $exclusion_cat;
+	}
 
-       return $exclusion . $exclusion_cat;
-   }
-	
 	/**
 	 * Build the HTML for global maps with all posts.
 	 *
@@ -291,26 +291,25 @@ class Simple_Post_Gmaps_Client {
 	 * @author Amaury Balmer & Nicolas Juen
 	 */
 	function buildGlobalMaps( $width = '600px', $height = '500px', $zoom = 5, $taxonomy = '', $post_type ='' ) {
-		
 		// Get the taxonomies in the short code if needed
-		if( empty( $taxonomy ) )
+		if ( empty( $taxonomy ) )
 			$taxonomies =  get_taxonomies(array(), 'objects' );
-		elseif( !is_array( $taxonomy ) )
-				if( taxonomy_exists( $taxonomy ) )
+		elseif ( !is_array( $taxonomy ) )
+				if ( taxonomy_exists( $taxonomy ) )
 					$taxonomies[] = get_taxonomy( $taxonomy );
 		else {
 			//Get the taxonomies with the explode
 			$taxos = explode( ',' , $taxonomy );
 			//If the array is not empty fill the taxonomy array with the taxonomy name
-			if( !empty( $taxos ) ) {
+			if ( !empty( $taxos ) ) {
 				$taxonomy = array();
 				foreach( $taxos  as $tax )
-					if( taxonomy_exists( $tax ) )
+					if ( taxonomy_exists( $tax ) )
 						$taxonomies[] = get_taxonomy( $tax );
 			}
 		}
 		
-		//Get the first taxonomy for the icons
+		// Get the first taxonomy for the icons
 		$firstTaxonomy = current( $taxonomies )->name;
 		
 		$output .= '<div id="map-global-post" style="width: '.$width.';height: '.$height.';margin:0 auto;text-align:center;"></div>' . "\n";
@@ -331,9 +330,9 @@ class Simple_Post_Gmaps_Client {
 			$output .= '-->' . "\n";
 		$output .= '</script>' . "\n";
 		
-		if( empty( $taxonomies ) )
+		if ( empty( $taxonomies ) )
 			return $output;
-
+		
 		$output .= '<div id="termsFiltering">';
 		foreach( $taxonomies as $taxonomy ) {
 			
@@ -341,17 +340,17 @@ class Simple_Post_Gmaps_Client {
 			$terms = get_terms( $taxonomy->name, array( 'hide_empty' => true, 'gmaps' => $taxonomy->name ) );
 			
 			//Go to the next taxonomy if no terms
-			if( empty( $terms ) )
+			if ( empty( $terms ) )
 				continue;
-
+			
 			$output .= '<div id="'.$taxonomy->name.'">';
 			$output .= $taxonomy->labels->name;
 			
 			//Display a label with the checkbox
-			foreach( $terms as $term ) {					
+			foreach( $terms as $term ) {
 				$output .= '<p><label>'.$term->name.'</label>';
-				$output .= '<input type="checkbox" value="'.$term->term_id.'" /></p>';				
-			}			
+				$output .= '<input type="checkbox" value="'.$term->term_id.'" /></p>';
+			}
 			$output .= '</div>';
 		}
 		$output .= '</div>';
@@ -363,7 +362,7 @@ class Simple_Post_Gmaps_Client {
 				jQuery(document).ready(function() {
 					//Add the filter event on buttons
 					jQuery("#termsFiltering input").click( filter )
-				}); 
+				});
 				
 				//Change the map for filtering
 				function filter(){
@@ -372,7 +371,7 @@ class Simple_Post_Gmaps_Client {
 					var termsFilter = "";
 					var taxonomiesFilter = "";
 					
-					if( inputs == "")
+					if ( inputs == "")
 						return false;
 					
 					//Foreach inputs get set the parameters
@@ -408,37 +407,24 @@ class Simple_Post_Gmaps_Client {
 	 * @return array | object
 	 * @author Amaury Balmer & Nicolas Juen
 	 */
-	function getKmlPosts( $orderby = array( 'orderby' => 'title','order' => 'ASC' ), $limit = '', $post_type ='', $get_id = '' ) {
+	function getKmlPosts( $orderby = array('orderby' => 'title', 'order' => 'ASC'), $limit = '', $post_type = '', $return_ids = false ) {
 		global $wpdb;
 		
 		// Get all the posts in the coordinates table
-		$posts = $wpdb->get_results( "SELECT post_id FROM $wpdb->simple_post_gmaps", ARRAY_A );
-		if( empty( $posts ) )
+		$post_ids = $wpdb->get_col( "SELECT post_id FROM $wpdb->simple_post_gmaps", ARRAY_A );
+		if ( empty($post_ids) )
 			return false;
-		
-		// Set the post in var for filtering
-		$post_in = array();
-		foreach( $posts as $post )
-			$post_in[] = $post['post_id'];
-		
+
 		// Return the array if needed
-		if( $get_id == true )
-			return $post_in;
+		if ( $return_ids == true )
+			return $post_ids;
 		
-		//Set the post_type to any if empty
-		if( empty( $post_type ) )
+		// Set the post_type to any if empty
+		if ( empty($post_type) )
 			$post_type= 'any';
 		
-		//Set the arguments and merge with the order
-		$args=array_merge( array(
-   			'post__in' => $post_in,
-   			'post_type' => $post_type,
-   			'posts_per_page' => $limit,
-		), $orderby );
-		
-		//Return the posts
-		$query = new WP_Query( $args );
-		return $query;
+		// Return the query
+		return new WP_Query( array_merge( array('post__in' => $post_ids, 'post_type' => $post_type, 'posts_per_page' => $limit), $orderby ) );
 	}
 	
 	/**
@@ -451,20 +437,20 @@ class Simple_Post_Gmaps_Client {
 		global $post;
 		
 		//Get different filters
-		$taxonomies = isset( $_GET['taxonomiesFilter'] ) && !empty( $_GET['taxonomiesFilter'] ) ? $_GET['taxonomiesFilter'] : '';	
-		$terms = isset( $_GET['termsFilter'] ) && !empty( $_GET['termsFilter'] ) ? $_GET['termsFilter'] : '';
-		$post_type = isset( $_GET['post_type'] ) && !empty( $_GET['post_type'] ) ? $_GET['post_type'] : '';
+		$taxonomies = isset( $_GET['taxonomiesFilter'] ) && !empty( $_GET['taxonomiesFilter'] ) ? $_GET['taxonomiesFilter'] : '';
+		$terms 		= isset( $_GET['termsFilter'] ) && !empty( $_GET['termsFilter'] ) 			? $_GET['termsFilter'] 		: '';
+		$post_type 	= isset( $_GET['post_type'] ) && !empty( $_GET['post_type'] ) 				? $_GET['post_type'] 		: '';
 		
 		$taxonomies = array_unique( $taxonomies );
 		foreach( $taxonomies as $key => $taxonomy )
-			if( !taxonomy_exists( $taxonomy ) )
+			if ( !taxonomy_exists( $taxonomy ) )
 				unset( $taxonomies[$key] );
 		
-		//Get the posts in the taxonomy and terms
+		// Get the posts in the taxonomy and terms
 		$postIn = array();
-		if( !empty( $terms ) && !empty( $taxonomies ) )
+		if ( !empty( $terms ) && !empty( $taxonomies ) )
 			$postIn = get_objects_in_term( $terms, $taxonomies );
-
+		
 		echo '<?xml version="1.0" encoding="' . get_bloginfo( 'charset' ) . '"?' . ">\n";
 		?>
 		<kml xmlns="http://www.opengis.net/kml/2.2">
@@ -472,24 +458,21 @@ class Simple_Post_Gmaps_Client {
 				<name><?php _e( 'All posts on Gmaps', 'simple-post-gmaps' ); ?></name>
 				<description><![CDATA[<?php _e( 'All posts on Gmaps', 'simple-post-gmaps' ); ?>]]></description>
 				<?php echo apply_filters( 'styles_kml', '' ); ?>
-
+				
 				<?php
 				foreach( (array) $this->getKmlPosts( array( 'orderby' => 'title','order' => 'ASC' ), '', $post_type )->posts as $post ) :
-				
+					
 					// Reduce the post numbers if not in this term
-					if( !empty( $postIn ) && is_array( $postIn ) && !is_wp_error( $postIn ) )
-						if( !in_array( $post->ID , $postIn ) )
+					if ( !empty( $postIn ) && is_array( $postIn ) && !is_wp_error( $postIn ) )
+						if ( !in_array( $post->ID , $postIn ) )
 							continue;
-
+					
 					//Get the post meta for the geolocalisation, continue if no metas
-					$meta = get_post_meta( $post->ID, 'geo',true );
-					if( empty( $meta ) || empty( $meta['longitude'] )  )
+					$meta = get_post_meta( $post->ID, 'geo', true );
+					if ( empty( $meta ) || empty( $meta['longitude'] )  )
 						continue;
-
-					//Set the post meta infos
-					$post->meta_value = $meta;
-					//Get the first term id for the icon style
-					var_dump($taxonomies);
+					
+					// Get the first term id for the icon style
 					$term_id = $this->getFirstTerm( $post->ID, $taxonomies[0], 'term_id' );
 					?>
 					<Placemark>
@@ -498,11 +481,10 @@ class Simple_Post_Gmaps_Client {
 						<description><![CDATA[<?php $this->theExcerpt( 35 ); ?>]]></description>
 						<styleUrl>#<?php echo 'ico'.$term_id; ?></styleUrl>
 						<Point>
-							<coordinates><?php echo $post->meta_value['longitude'].','.$post->meta_value['latitude'].',0.00000000'; ?></coordinates>
+							<coordinates><?php echo $meta['longitude'].','.$meta['latitude'].',0.00000000'; ?></coordinates>
 						</Point>
 					</Placemark>
 				<?php endforeach; ?>
-			
 			</Document>
 		</kml>
 		<?php
@@ -511,23 +493,22 @@ class Simple_Post_Gmaps_Client {
 	/**
 	 * Get the first term from a post/taxonomy, allow to choose the output return...
 	 *
-	 * @param string $taxonomy 
-	 * @param string $output 
+	 * @param string $taxonomy
+	 * @param string $output
 	 * @return integer|string|object
 	 * @author Amaury Balmer
 	 */
 	function getFirstTerm( $post_id = '' , $taxonomy = 'category', $output = '' ) {
-		
-		if( !is_numeric( $post_id ) || empty( $post_id ) )
+		if ( !is_numeric( $post_id ) || empty( $post_id ) )
 			return false;
 		
-		//Get the terms of the taxonomy
+		// Get the terms of the taxonomy
 		$terms = get_the_terms( $post_id, $taxonomy );
 		
 		if ( $terms == false )
 			return false;
-			
-		//Get the first term
+		
+		// Get the first term
 		$term = current( $terms );
 		
 		switch( $output ) {
@@ -558,7 +539,7 @@ class Simple_Post_Gmaps_Client {
 		$terms = get_terms( get_taxonomies(), array( 'hide_empty'=> true ) );
 		
 		foreach( (array) $terms as $term ) :
-		
+			
 			if ( !is_file(TEMPLATEPATH . '/gmaps/ico-'.$term->term_id.'.png') )
 				continue;
 			?>
@@ -632,99 +613,95 @@ class Simple_Post_Gmaps_Client {
 		$_id = ( intval($object_ID) == 0 ) ? (int) $object->ID : $object_ID;
 		if ( $_id == 0 )
 			return false;
-		
-		$post = get_post( $object_ID, ARRAY_A );
-		if( $post['post_status'] != 'publish' )
-			return true;
 
-		if ( isset( $_POST['geo'] ) ) { // Update geo postmeta ?
-			$this->savePostMerge( $_id, $_POST['geo'] );
+		if ( isset( $_POST['geo'] ) ) {
+			// Save data in meta
+			update_post_meta( $_id, 'geo', $_POST['geo'] );
+			
+			$post = get_post( $_id );
+			if ( $post->post_status == 'publish' )
+				$this->savePostMerge( $_id, $_POST['geo'] );
+			else 
+				$this->deletedPost( $_id )
 		}
 		
 		return false;
 	}
 	
 	/**
-	 * Save the post meta's and in the table
-	 * 
+	 * Save the geo datas in the table
+	 *
 	 * @access public
-	 * @param mixed $post_id
-	 * @param mixed $datas
-	 * @return void
+	 * @param integer $post_id
+	 * @param array $datas
+	 * @return boolean|integer
 	 * @author Nicolas Juen
 	 */
 	function savePostMerge( $post_id, $datas ) {
-		$meta = update_post_meta( $post_id, 'geo', $datas );
-
 		global $wpdb;
-		$get = $wpdb->get_results( 'SELECT `long`,`lat` FROM `'.$wpdb->simple_post_gmaps.'` WHERE post_id='.$post_id );		
 
-		if( empty( $get ) )
-			$query = $wpdb->insert( $wpdb->simple_post_gmaps, array( 'post_id' => $post_id, 'long' => $datas['longitude'], 'lat' => $datas['latitude'] ) ,array( '%d','%f','%f' ) );
-
-		if( rtrim( $get[0]->lat, '0' ) != rtrim( $datas['latitude'], '0' ) || rtrim( $get[0]->long, '0' ) != rtrim( $datas['longitude'], '0' ) )
-			$query = $wpdb->update( $wpdb->simple_post_gmaps, array( 'long' => $datas['longitude'], 'lat' => $datas['latitude'] ), array( 'post_id' => $post_id ) , array( '%f','%f' ), array( '%d' ) );
-		
-		if( $datas['latitude'] == '0' && $datas['longitude'] )
-			$query = $this->deletedPost( $post_id );
-
-		if( !$meta || !$query )
-			return false;
-
-		return true;
+		// Not Valid GPS ? Delete it from table
+		if ( $datas['latitude'] == '0' && $datas['longitude'] == 0 )
+			return $this->deletedPost( $post_id );
+		} else { // Save also datas in plugin table
+			
+			$r = $wpdb->get_var( $wpdb->prepare("SELECT long, lat FROM $wpdb->simple_post_gmaps WHERE post_id = %d", $post_id) );
+			
+			if ( empty($r) || $r == false ) // Insert
+				return $wpdb->insert( $wpdb->simple_post_gmaps, array('post_id' => $post_id, 'long' => $datas['longitude'], 'lat' => $datas['latitude']), array('%d','%f','%f') );
+			else // update
+				return $wpdb->update( $wpdb->simple_post_gmaps, array( 'long' => $datas['longitude'], 'lat' => $datas['latitude'] ), array( 'post_id' => $post_id ) , array('%f','%f'), array('%d') );
+		}
 	}
 	
 	/**
 	 * Delete in the gmaps table when deleting the post
-	 * 
+	 *
 	 * @access public
 	 * @param int $post_id. (default: 0)
 	 * @return void
 	 * @author Nicolas Juen
 	 */
 	function deletedPost( $post_id = 0 ) {
-		if( $post_id == 0 )
+		if ( $post_id == 0 )
 			return false;
 		
-		global $wpdb;	
-		return $wpdb->query( $wpdb->prepare( 'DELETE FROM '.$wpdb->simple_post_gmaps.' WHERE post_id = %d', $post_id ) );
+		global $wpdb;
+		return $wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->simple_post_gmaps WHERE post_id = %d", $post_id ) );
 	}
 	
 	/**
-	 * addQueryVar function.
-	 * 
+	 * Add latitude and longitude
+	 *
 	 * @access public
-	 * @param mixed $wp_query_var
-	 * @return void
+	 * @param array $query_vars
+	 * @return array
 	 * @author Nicolas Juen
 	 */
-	function addQueryVar( $wp_query_var ) {
+	function addQueryVar( $query_vars ) {
+		$query_vars[] = 'latitude';
+		$query_vars[] = 'longitude';
 		
-		// Add latitude and longitude
-		$wp_query_var[] = 'latitude';
-		$wp_query_var[] = 'longitude';
-		
-		return $wp_query_var;
+		return $query_vars;
 	}
 	
 	/**
 	 * Add the actions if the longitude and latitude are given
-	 * 
+	 *
 	 * @access public
 	 * @return void
 	 * @author Nicolas Juen
 	 */
 	function parseQuery( $query ) {
-		
 		// Get options
 		$this->latitude = $query->query_vars['latitude'];
 		$this->longitude = $query->query_vars['longitude'];
 		
 		if ( empty( $this->latitude ) || empty( $this->longitude ) || $query->query_vars['orderby'] != 'distance' )
 			return $query;
-			
+		
 		//Fix the query
-		add_action( 'pre_get_posts', array(&$this, 'fixQueryFlags') );			
+		add_action( 'pre_get_posts', array(&$this, 'fixQueryFlags') );
 		
 		//Add distance field
 		add_action( 'posts_fields_request', array( &$this, 'buildQueryFields' ), 10, 2 );
@@ -735,47 +712,45 @@ class Simple_Post_Gmaps_Client {
 		//Add order by distance ASC
 		add_action( 'posts_orderby_request', array( &$this, 'buildQueryOrder' ), 10, 2 );
 	}
-
+	
 	/**
 	 * Fix the query flags in case of fitlering
-	 * 
+	 *
 	 * @access public
 	 * @param mixed $query
 	 * @return void
 	 * @author Nicolas Juen
 	 */
 	function fixQueryFlags( $query ) {
-		//Remove useless parts
+		// Remove useless parts
 		$query->is_tax = false;
 		$query->is_category = false;
 		$query->is_distance = true;
-
+		
 		if ( empty( $query->query_vars['post_type'] ) )
 			$query->query_vars['post_type'] = 'any';
 		$query->query_vars['category__in'] = '';
 	}
 	
 	/**
-	 * Add the join in the query
-	 * 
+	 * Join with the GPS coordinates table
+	 *
 	 * @access public
-	 * @param string $join. (default: '')
+	 * @param string $join
 	 * @param mixed $current_query
-	 * @return void
+	 * @return string
 	 * @author Nicolas Juen
 	 */
 	function buildQueryJoin( $join = '', $current_query ) {
-		global  $wpdb;
+		global $wpdb;
 		
-		//Join with the GPS coordinates table
 		$join .= ' INNER JOIN '.$wpdb->simple_post_gmaps.' ON ( '.$wpdb->simple_post_gmaps.'.post_id = '.$wpdb->prefix.'posts.ID )';
-		
 		return $join;
 	}
 	
 	/**
 	 * Add the distance calculation to the fields as distance
-	 * 
+	 *
 	 * @access public
 	 * @param string $fields. (default: '')
 	 * @param mixed $current_query
@@ -783,28 +758,24 @@ class Simple_Post_Gmaps_Client {
 	 * @author Nicolas Juen
 	 */
 	function buildQueryFields( $fields = '', $current_query ) {
-		global  $wpdb;
+		global $wpdb;
 		
 		$fields .= ', round((ACOS(COS(RADIANS('.$wpdb->simple_post_gmaps.'.lat))*COS(RADIANS('.$this->latitude.'))*COS(RADIANS('.$this->longitude.')-RADIANS('.$wpdb->simple_post_gmaps.'.long))+SIN(RADIANS('.$this->latitude.'))*SIN(RADIANS('.$wpdb->simple_post_gmaps.'.lat)))*6366),2) AS `distance`';
-
-	return $fields;	
+		return $fields;
 	}
 	
 	/**
-	 * Add ditstance to the order
-	 * 
+	 * Overwrite the order_by
+	 *
 	 * @access public
 	 * @param string $order_by. (default: '')
 	 * @param mixed $current_query
-	 * @return void
+	 * @return string
 	 * @author Nicolas Juen
 	 */
 	function buildQueryOrder( $order_by = '', $current_query ) {
-		
-		//Overwrite the order_by
 		$order_by = 'distance';
-
-		return $order_by;		
-	}	
+		return $order_by;
+	}
 }
 ?>

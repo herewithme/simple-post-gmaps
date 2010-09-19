@@ -3,7 +3,7 @@
 Plugin Name: Simple Post GMaps
 Plugin URI: http://www.beapi.fr
 Description: Allow to geolocalise post with Google Maps (API in v3). No google maps key are required. You can choose with the map the position of the post on admin. You can use shortcode for display the map, or the widget. You can also display a maps with each posts localized on the same maps !
-Author: Be API
+Author: BeAPI
 Author URI: http://www.beapi.fr
 Version: 3.0.9
 Text Domain: simple-post-gmaps
@@ -14,7 +14,6 @@ Copyright 2010 Amaury BALMER (amaury@beapi.fr) - Be-API
 
 This plugin is not free to usage, not open-source, not GPL.
 You can't use and modify this plugin without the permission of Be-API. (amaury@be-api.fr)
-
 */
 
 global $wpdb;
@@ -25,8 +24,8 @@ $wpdb->tables[] = 'simple_post_gmaps';
 define ( 'SGM_VERSION', '3.0.9' );
 define ( 'SGM_OPTION',  'simple-post-gmaps' );
 
-define ( 'SGM_URL', plugins_url('/', __FILE__) );
-define ( 'SGM_DIR', dirname(__FILE__) );
+define ( 'SGM_URL',  plugins_url('/', __FILE__) );
+define ( 'SGM_DIR',  dirname(__FILE__) );
 define ( 'SGM_SLUG', 'maps' );
 
 define ( 'SGM_TOOLTIP', '<div class="infotool-gmap" style="font-size:11px;">
@@ -47,8 +46,6 @@ require (SGM_DIR . '/inc/class.client.php');
 register_activation_hook  ( __FILE__, array('Simple_Post_Gmaps_Base', 'activate') );
 register_deactivation_hook( __FILE__, array('Simple_Post_Gmaps_Base', 'deactivate') );
 
-
-
 // init Simple Post Gmaps when all plugins are loaded !
 add_action ( 'plugins_loaded', 'init_simple_post_gmaps' );
 function init_simple_post_gmaps() {
@@ -57,7 +54,7 @@ function init_simple_post_gmaps() {
 	
 	global $spgm_obj;
 	$spgm_obj['rewrite'] = new Simple_Post_Gmaps_Rewrite();
-	$spgm_obj['client'] = new Simple_Post_Gmaps_Client();
+	$spgm_obj['client']  = new Simple_Post_Gmaps_Client();
 
 	// Load admin
 	if ( is_admin() ) {
@@ -67,6 +64,5 @@ function init_simple_post_gmaps() {
 	
 	// Widget
 	add_action( 'widgets_init', create_function('', 'return register_widget("Simple_Post_Gmaps_Widget");') );
-	
 }
 ?>
