@@ -147,7 +147,7 @@ class Simple_Post_Gmaps_Admin {
 								<input name="hidden_coordinates" type="checkbox" <?php checked( true, $current_settings['hidden_coordinates'], true ) ?> id="hidden_coordinates" value="1" class="regular-text" />
 							</td>
 						</tr>
-					</table
+					</table>
 					<p class="submit">
 						<?php wp_nonce_field( 'save-sgm-settings' ); ?>
 						<input class="button-primary" name="save-sgm" type="submit" value="<?php _e( 'Save settings', 'simple-post-gmaps' ); ?>" />
