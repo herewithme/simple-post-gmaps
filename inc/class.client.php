@@ -86,7 +86,7 @@ class Simple_Post_Gmaps_Client {
 		
 		// Get settings on DB
 		$current_settings = get_option( SGM_OPTION );
-		if ( $current_settings['hidden_coordinates'] == 1 )
+		if ( isset($current_settings['hidden_coordinates']) && $current_settings['hidden_coordinates'] == 1 )
 			return $post_content;
 		
 		global $post;
@@ -429,6 +429,8 @@ class Simple_Post_Gmaps_Client {
 				
 				<?php
 				foreach( (array) $query_posts->posts as $post ) :
+					setup_postdata($post);
+					
 					//Get the post meta for the geolocalisation, continue if no metas
 					$meta = get_post_meta( $post->ID, 'geo', true );
 					if ( empty( $meta ) || empty( $meta['longitude'] )  )
@@ -531,6 +533,7 @@ class Simple_Post_Gmaps_Client {
 		global $post;
 		
 		$post->post_excerpt = trim( $post->post_excerpt );
+		
 		if ( empty($post->post_excerpt) ) {
 			echo $this->my_trim_excerpt( $post->post_content, $word );
 		} else {
@@ -546,25 +549,21 @@ class Simple_Post_Gmaps_Client {
 	 * @return void
 	 * @author Amaury Balmer
 	 */
-	function my_trim_excerpt( $text = '', $word = 55 ) {
-		$raw_excerpt = $text;
-		if ( '' == $text ) {
-			$text = get_the_content('');
-			
-			$text = strip_shortcodes( $text );
-			
-			$text = apply_filters('the_content', $text);
-			$text = str_replace(']]>', ']]&gt;', $text);
-			$text = strip_tags($text);
-			$excerpt_length = apply_filters('excerpt_length', $word );
-			$words = explode(' ', $text, $excerpt_length + 1);
-			if (count($words) > $excerpt_length) {
-				array_pop($words);
-				array_push($words, '[...]');
-				$text = implode(' ', $words);
-			}
+	function my_trim_excerpt( $content = '', $word = 55 ) {
+		$text = strip_shortcodes( $content );
+		
+		$text = apply_filters('the_content', $text);
+		$text = str_replace(']]>', ']]&gt;', $text);
+		$text = strip_tags($text);
+		$excerpt_length = apply_filters('excerpt_length', $word );
+		$words = explode(' ', $text, $excerpt_length + 1);
+		if (count($words) > $excerpt_length) {
+			array_pop($words);
+			array_push($words, '[...]');
+			$text = implode(' ', $words);
 		}
-		return apply_filters('wp_trim_excerpt', $text, $raw_excerpt);
+	
+		return apply_filters('wp_trim_excerpt', $text, $content);
 	}
 	
 	/**
