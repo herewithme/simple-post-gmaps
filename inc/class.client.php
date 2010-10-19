@@ -337,7 +337,8 @@ class Simple_Post_Gmaps_Client {
 			$output .= '
 				jQuery(document).ready(function() {
 					//Add the filter event on buttons
-					jQuery("#termsFiltering input").click( filter )
+					jQuery("#termsFiltering input").click( filter );
+					alert("filter");
 				});
 				
 				//Change the map for filtering
@@ -367,8 +368,9 @@ class Simple_Post_Gmaps_Client {
 					
 					//Get the new coordinates
 					geoXml.parse("'.home_url( '/' ).'?showposts_kml=true&post_type='.$post_type.'"+termsFilter+taxonomiesFilter+"&taxonomiesFilter[]='.$firstTaxonomy.'");
-				}';
-			$output .= '-->' . "\n";
+				}
+				';
+			$output .= ' -->' . "\n";
 		$output .= '</script>' . "\n";
 		
 		return apply_filters( 'buildGlobalMaps', $output );
