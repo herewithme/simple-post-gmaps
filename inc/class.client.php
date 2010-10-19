@@ -186,7 +186,7 @@ class Simple_Post_Gmaps_Client {
 	 * @return string
 	 * @author Amaury Balmer
 	 */
-	function buildPostGmaps( $id = 0, $width = '400px', $height = '300px', $latitude = '', $longitude = '', $zoom = 10, $title = '', $icon_url = '', $iframe = false, $iframe_adress ) {
+	function buildPostGmaps( $id = 0, $width = '400px', $height = '300px', $latitude = '', $longitude = '', $zoom = 10, $title = '', $icon_url = '', $iframe = false, $iframe_adress = '' ) {
 		if ( $iframe == true ) {
 			return '<iframe width="'.$width.'" height="'.$height.'" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.fr/maps?f=q&amp;source=s_q&amp;hl=fr&amp;geocode=&amp;q='.$iframe_adress.'&amp;sll='.$latitude.','.$longitude.'&amp;ie=UTF8&amp;hq=&amp;z='.$zoom.'&amp;output=embed"></iframe>' . "\n";
 		}
@@ -323,6 +323,9 @@ class Simple_Post_Gmaps_Client {
 						$output .= '<p>' . "\n";
 							$output .= '<label>'.$term->name.'</label>' . "\n";
 							$output .= '<input type="checkbox" value="'.$term->term_id.'" />' . "\n";
+							//Display the legend icon if present
+							if( is_file(TEMPLATEPATH . '/gmaps/ico-legend-'.$term->taxonomy.'-'.$term->term_id.'.png') )
+								$output .= '<img src="'.get_bloginfo( 'template_url' ) . '/gmaps/ico-legend-'.$term->taxonomy.'-'.$term->term_id.'.png'.'" />';
 						$output .='</p>' . "\n";
 					}
 				$output .= '</div>' . "\n";
