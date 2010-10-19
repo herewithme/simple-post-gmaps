@@ -273,7 +273,7 @@ class Simple_Post_Gmaps_Admin {
 	function blockPostGeo( $post ) {
 		$geo_value = get_post_meta( $post->ID, 'geo', true );
 		if ( $geo_value == false )
-			$geo_value = array( 'share_post' => '', 'latitude' => '', 'longitude' => '', 'accuracy' => '', 'address' => '' );
+			$geo_value = array( 'share_post' => '1', 'latitude' => '', 'longitude' => '', 'accuracy' => '', 'address' => '' );
 		else 
 			$geo_value['accuracy'] = (int) $geo_value['accuracy'];
 			

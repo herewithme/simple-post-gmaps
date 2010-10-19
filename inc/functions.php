@@ -12,8 +12,8 @@
  * @return void
  * @author Amaury Balmer
  */
-function the_post_googlemaps( $id = 0, $width = '400px', $height = '300px', $latitude = '', $longitude = '', $zoom = 10, $title = '') {
-	echo get_post_googlemaps( $id, $width, $height, $latitude, $longitude, $zoom, $title );
+function the_post_googlemaps( $id = 0, $width = '400px', $height = '300px', $latitude = '', $longitude = '', $zoom = 10, $title = '', $iframe = false ) {
+	echo get_post_googlemaps( $id, $width, $height, $latitude, $longitude, $zoom, $title, $iframe );
 }
 
 /**
@@ -29,9 +29,9 @@ function the_post_googlemaps( $id = 0, $width = '400px', $height = '300px', $lat
  * @return void
  * @author Amaury Balmer
  */
-function get_post_googlemaps( $id = 0, $width = '400px', $height = '300px', $latitude = '', $longitude = '', $zoom = 10, $title = '' ) {
+function get_post_googlemaps( $id = 0, $width = '400px', $height = '300px', $latitude = '', $longitude = '', $zoom = 10, $title = '', $iframe = false ) {
 	global $spgm_obj;
-	return $spgm_obj['client']->buildPostGmaps( $id, $width, $height, $latitude, $longitude, $zoom, $title );
+	return $spgm_obj['client']->buildPostGmaps( $id, $width, $height, $latitude, $longitude, $zoom, $title, $iframe );
 }
 
 /**

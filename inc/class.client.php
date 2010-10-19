@@ -83,7 +83,6 @@ class Simple_Post_Gmaps_Client {
 	 * @author Amaury Balmer
 	 */
 	function addGeoMetaHtml( $post_content ) {
-		
 		// Get settings on DB
 		$current_settings = get_option( SGM_OPTION );
 		if ( isset($current_settings['hidden_coordinates']) && $current_settings['hidden_coordinates'] == 1 )
@@ -187,7 +186,11 @@ class Simple_Post_Gmaps_Client {
 	 * @return string
 	 * @author Amaury Balmer
 	 */
-	function buildPostGmaps( $id = 0, $width = '400px', $height = '300px', $latitude = '', $longitude = '', $zoom = 10, $title = '', $icon_url = '' ) {
+	function buildPostGmaps( $id = 0, $width = '400px', $height = '300px', $latitude = '', $longitude = '', $zoom = 10, $title = '', $icon_url = '', $iframe = false, $iframe_adress ) {
+		if ( $iframe == true ) {
+			return '<iframe width="'.$width.'" height="'.$height.'" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.fr/maps?f=q&amp;source=s_q&amp;hl=fr&amp;geocode=&amp;q='.$iframe_adress.'&amp;sll='.$latitude.','.$longitude.'&amp;ie=UTF8&amp;hq=&amp;z='.$zoom.'&amp;output=embed"></iframe>' . "\n";
+		}
+		
 		if ( !empty($icon_url) ) {
 			$image_def   = 'var image = "'.$icon_url.'";';
 			$image_param = ', icon: image';
@@ -290,7 +293,7 @@ class Simple_Post_Gmaps_Client {
 					zoom: '.$zoom.',
 					mapTypeId: google.maps.MapTypeId.ROADMAP,
 					mapTypeControl: true,
-					navigationControl: true,
+					navigationControl: true
 				}
 				var map = new google.maps.Map(document.getElementById("map-global-post"), myOptions);
 				
@@ -304,26 +307,27 @@ class Simple_Post_Gmaps_Client {
 			return apply_filters( 'buildGlobalMaps', $output );
 		
 		$output .= '<div id="termsFiltering">';
-		foreach( $taxonomies as $taxonomy ) {
+			foreach( $taxonomies as $taxonomy ) {
+				//Get the terms with posts with coordinates
+				$terms = get_terms( $taxonomy->name, array( 'hide_empty' => true, 'gmaps' => $taxonomy->name ) );
 			
-			//Get the terms with posts with coordinates
-			$terms = get_terms( $taxonomy->name, array( 'hide_empty' => true, 'gmaps' => $taxonomy->name ) );
+				//Go to the next taxonomy if no terms
+				if ( empty( $terms ) )
+					continue;
 			
-			//Go to the next taxonomy if no terms
-			if ( empty( $terms ) )
-				continue;
+				$output .= '<div id="'.$taxonomy->name.'">';
+					$output .= '<h3>'.apply_filters('taxonomy_name', $taxonomy->labels->name).'</h3>';
 			
-			$output .= '<div id="'.$taxonomy->name.'">';
-			$output .= $taxonomy->labels->name;
-			
-			//Display a label with the checkbox
-			foreach( $terms as $term ) {
-				$output .= '<p><label>'.$term->name.'</label>';
-				$output .= '<input type="checkbox" value="'.$term->term_id.'" /></p>';
+					//Display a label with the checkbox
+					foreach( $terms as $term ) {
+						$output .= '<p>' . "\n";
+							$output .= '<label>'.$term->name.'</label>' . "\n";
+							$output .= '<input type="checkbox" value="'.$term->term_id.'" />' . "\n";
+						$output .='</p>' . "\n";
+					}
+				$output .= '</div>' . "\n";
 			}
-			$output .= '</div>';
-		}
-		$output .= '</div>';
+		$output .= '</div>' . "\n";
 		
 		$output .= '<script type="text/javascript">' . "\n";
 			$output .= '<!--' . "\n";
@@ -353,15 +357,14 @@ class Simple_Post_Gmaps_Client {
 					});
 					
 					//Create the new map
-					var0 map = new google.maps.Map(document.getElementById("map-global-post"), myOptions);
+					var map = new google.maps.Map(document.getElementById("map-global-post"), myOptions);
 					
 					//Set the new parser
 					var geoXml = new geoXML3.parser({map:map});
 					
 					//Get the new coordinates
 					geoXml.parse("'.home_url( '/' ).'?showposts_kml=true&post_type='.$post_type.'"+termsFilter+taxonomiesFilter+"&taxonomiesFilter[]='.$firstTaxonomy.'");
-				}
-			';
+				}';
 			$output .= '-->' . "\n";
 		$output .= '</script>' . "\n";
 		
