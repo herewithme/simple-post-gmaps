@@ -338,7 +338,6 @@ class Simple_Post_Gmaps_Client {
 				jQuery(document).ready(function() {
 					//Add the filter event on buttons
 					jQuery("#termsFiltering input").click( filter );
-					alert("filter");
 				});
 				
 				//Change the map for filtering
