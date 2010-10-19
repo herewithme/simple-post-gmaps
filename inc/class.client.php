@@ -321,8 +321,8 @@ class Simple_Post_Gmaps_Client {
 					//Display a label with the checkbox
 					foreach( $terms as $term ) {
 						$output .= '<p>' . "\n";
-							$output .= '<label>'.$term->name.'</label>' . "\n";
-							$output .= '<input type="checkbox" value="'.$term->term_id.'" />' . "\n";
+							$output .= '<label for="'.$term->term_id.'">'.$term->name.'</label>' . "\n";
+							$output .= '<input type="checkbox" id="'.$term->term_id.'" value="'.$term->term_id.'" />' . "\n";
 							//Display the legend icon if present
 							if( is_file(TEMPLATEPATH . '/gmaps/ico-legend-'.$term->taxonomy.'-'.$term->term_id.'.png') )
 								$output .= '<img src="'.get_bloginfo( 'template_url' ) . '/gmaps/ico-legend-'.$term->taxonomy.'-'.$term->term_id.'.png'.'" />';
