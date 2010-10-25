@@ -43,6 +43,11 @@ class Simple_Post_Gmaps_Client {
 		// Keep update geo table
 		add_action( 'save_post', 	array(&$this, 'savePost' ) );
 		add_action( 'deleted_post',	array(&$this, 'deletedPost' ) );
+		add_action( 'publish_to_draft',	array(&$this, 'deletedPost' ) );
+		add_action( 'publish_to_private',	array(&$this, 'deletedPost' ) );
+		add_action( 'publish_to_future',	array(&$this, 'deletedPost' ) );
+		add_action( 'publish_to_pending',	array(&$this, 'deletedPost' ) );
+		add_action( 'publish_to_new',	array(&$this, 'deletedPost' ) );
 		
 		add_filter( 'styles_kml', 	array(&$this, 'addKmlStyles'), 2 );
 		add_filter( 'list_terms_exclusions',     array( &$this, 'hideEmpty'), 10, 2);
@@ -273,9 +278,11 @@ class Simple_Post_Gmaps_Client {
 				$taxos = explode( ',' , $taxonomy );
 				//If the array is not empty fill the taxonomy array with the taxonomy name
 				if ( !empty( $taxos ) ) {
-					foreach( $taxos  as $tax )
-						if ( taxonomy_exists( $tax ) )
+					foreach( $taxos  as $tax ){
+						if ( taxonomy_exists( $tax ) ){
 							$taxonomies[] = get_taxonomy( $tax );
+						}
+					}
 				}
 			}
 			
@@ -306,6 +313,10 @@ class Simple_Post_Gmaps_Client {
 		if ( empty($taxonomies) )
 			return apply_filters( 'buildGlobalMaps', $output );
 		
+		//Get all the posts geolocalized
+		global $wpdb;							
+		$results = $wpdb->get_col( "SELECT post_id FROM $wpdb->simple_post_gmaps" );
+		
 		$output .= '<div id="termsFiltering">';
 			foreach( $taxonomies as $taxonomy ) {
 				//Get the terms with posts with coordinates
@@ -320,12 +331,24 @@ class Simple_Post_Gmaps_Client {
 			
 					//Display a label with the checkbox
 					foreach( $terms as $term ) {
+						// Get the objects in the current term
+						$objects = get_objects_in_term( $term->term_id, $taxonomy->name );
+						
+						// Intersect the geolocalized posts and the term objects
+						$intersect = array_intersect( $results, $objects );		
+						
+						// Continue if no posts	
+						if( empty( $intersect ) )
+							continue;
+						
 						$output .= '<p>' . "\n";
-							$output .= '<label for="'.$term->term_id.'">'.$term->name.'</label>' . "\n";
 							$output .= '<input type="checkbox" id="'.$term->term_id.'" value="'.$term->term_id.'" />' . "\n";
+							
 							//Display the legend icon if present
 							if( is_file(TEMPLATEPATH . '/gmaps/ico-legend-'.$term->taxonomy.'-'.$term->term_id.'.png') )
 								$output .= '<img src="'.get_bloginfo( 'template_url' ) . '/gmaps/ico-legend-'.$term->taxonomy.'-'.$term->term_id.'.png'.'" />';
+								
+							$output .= '<label for="'.$term->term_id.'">'.$term->name.'</label>' . "\n";
 						$output .='</p>' . "\n";
 					}
 				$output .= '</div>' . "\n";
