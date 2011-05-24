@@ -320,8 +320,11 @@ class Simple_Post_Gmaps_Client {
 		$output .= '<div id="termsFiltering">';
 			foreach( $taxonomies as $taxonomy ) {
 				//Get the terms with posts with coordinates
-				$terms = get_terms( $taxonomy->name, array( 'hide_empty' => true, 'gmaps' => $taxonomy->name ) );
-			
+				if ( $taxonomy->name == 'famille-pate' ) 
+					$terms = get_terms( $taxonomy->name, array( 'hide_empty' => true, 'gmaps' => $taxonomy->name , 'orderby' => 'name', 'order' => 'DESC') );
+				else
+					$terms = get_terms( $taxonomy->name, array( 'hide_empty' => true, 'gmaps' => $taxonomy->name , 'orderby' => 'name', 'order' => 'ASC') );
+				
 				//Go to the next taxonomy if no terms
 				if ( empty( $terms ) )
 					continue;
@@ -455,7 +458,7 @@ class Simple_Post_Gmaps_Client {
 			<Document>
 				<name><?php _e( 'All posts on Gmaps', 'simple-post-gmaps' ); ?></name>
 				<description><![CDATA[<?php _e( 'All posts on Gmaps', 'simple-post-gmaps' ); ?>]]></description>
-				<?php echo apply_filters( 'styles_kml', '' ); ?>
+				<?php echo apply_filters( 'styles_kml', '', $post_type ); ?>
 				
 				<?php
 				foreach( (array) $query_posts->posts as $post ) :
@@ -470,7 +473,11 @@ class Simple_Post_Gmaps_Client {
 					$style_url = '';
 					if ( !empty($taxonomies) ) {
 						$term_id = $this->getFirstTerm( $post->ID, $taxonomies[0], 'term_id' );
-						$style_url = '<styleUrl>#ico-'.$taxonomies[0].'-'.$term_id.'</styleUrl>' . "\n";
+						if ( $term_id != false ) {
+							$style_url = '<styleUrl>#ico-'.$taxonomies[0].'-'.$term_id.'</styleUrl>' . "\n";
+						} else {
+							$style_url = '<styleUrl>#ico-'.$taxonomies[0].'-default</styleUrl>' . "\n";
+						}
 					}
 					?>
 					<Placemark>
@@ -533,23 +540,41 @@ class Simple_Post_Gmaps_Client {
 	 * @return void
 	 * @author Amaury Balmer
 	 */
-	function addKmlStyles() {
-		$terms = get_terms( get_taxonomies(), array( 'hide_empty'=> true ) );
+	function addKmlStyles( $output = '', $post_type = '' ) {
+		if ( !empty($post_type) )
+			$taxos = get_object_taxonomies($post_type);
+		else
+			$taxos = get_taxonomies();
+		
+		$terms = get_terms( $taxos, array( 'hide_empty'=> true ) );
+		
+		foreach( $taxos as $taxo ) {
+			if ( !is_file(TEMPLATEPATH . '/gmaps/ico-'.$taxo.'-default.png') )
+				continue;
+			
+			$output .= '<Style id="ico-'.$taxo.'-default">' . "\n";
+				$output .= '<IconStyle id="myico'.$taxo.'">' . "\n";
+					$output .= '<Icon>' . "\n";
+						$output .= '<href>'.get_bloginfo('template_directory') . '/gmaps/ico-'.$taxo.'-default.png</href>' . "\n";
+					$output .= '</Icon>' . "\n";
+				$output .= '</IconStyle>' . "\n";
+			$output .= '</Style>' . "\n";
+		}
 		
 		foreach( (array) $terms as $term ) :
-			
 			if ( !is_file(TEMPLATEPATH . '/gmaps/ico-'.$term->taxonomy.'-'.$term->term_id.'.png') )
 				continue;
-			?>
-			<Style id="ico-<?php echo $term->taxonomy.'-'.$term->term_id; ?>">
-				<IconStyle id="myico<?php echo $term->term_id; ?>">
-					<Icon>
-						<href><?php echo bloginfo('template_directory') . '/gmaps/ico-'.$term->taxonomy.'-'.$term->term_id.'.png'; ?></href>
-					</Icon>
-				</IconStyle>
-			</Style>
-			<?php
+				
+			$output .= '<Style id="ico-'.$term->taxonomy.'-'.$term->term_id.'">' . "\n";
+				$output .= '<IconStyle id="myico'.$term->term_id.'">' . "\n";
+					$output .= '<Icon>' . "\n";
+						$output .= '<href>'.get_bloginfo('template_directory') . '/gmaps/ico-'.$term->taxonomy.'-'.$term->term_id.'.png'.'</href>' . "\n";
+					$output .= '</Icon>' . "\n";
+				$output .= '</IconStyle>' . "\n";
+			$output .= '</Style>' . "\n";
 		endforeach;
+		
+		return $output;
 	}
 	
 	/**
@@ -716,6 +741,8 @@ class Simple_Post_Gmaps_Client {
 	 * @author Nicolas Juen
 	 */
 	function fixQueryFlags( $query ) {
+		remove_action( 'pre_get_posts', array(&$this, 'fixQueryFlags') );
+		
 		// Remove useless parts
 		$query->is_tax = false;
 		$query->is_category = false;
@@ -737,6 +764,8 @@ class Simple_Post_Gmaps_Client {
 	 * @author Nicolas Juen
 	 */
 	function buildQueryJoin( $join = '', $current_query ) {
+		remove_action( 'posts_join_request', array( &$this, 'buildQueryJoin' ), 10, 2 );
+		
 		global $wpdb;
 		
 		$join .= ' INNER JOIN '.$wpdb->simple_post_gmaps.' ON ( '.$wpdb->simple_post_gmaps.'.post_id = '.$wpdb->prefix.'posts.ID )';
@@ -753,6 +782,8 @@ class Simple_Post_Gmaps_Client {
 	 * @author Nicolas Juen
 	 */
 	function buildQueryFields( $fields = '', $current_query ) {
+		remove_action( 'posts_fields_request', array( &$this, 'buildQueryFields' ), 10, 2 );
+		
 		global $wpdb;
 		
 		$fields .= ', round((ACOS(COS(RADIANS('.$wpdb->simple_post_gmaps.'.lat))*COS(RADIANS('.$this->latitude.'))*COS(RADIANS('.$this->longitude.')-RADIANS('.$wpdb->simple_post_gmaps.'.long))+SIN(RADIANS('.$this->latitude.'))*SIN(RADIANS('.$wpdb->simple_post_gmaps.'.lat)))*6366),2) AS `distance`';
@@ -769,6 +800,8 @@ class Simple_Post_Gmaps_Client {
 	 * @author Nicolas Juen
 	 */
 	function buildQueryOrder( $order_by = '', $current_query ) {
+		remove_action( 'posts_orderby_request', array( &$this, 'buildQueryOrder' ), 10, 2 );
+		
 		$order_by = 'distance';
 		return $order_by;
 	}
