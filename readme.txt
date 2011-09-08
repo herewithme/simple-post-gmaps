@@ -24,12 +24,13 @@ Read the sample file for an example of query.
 
 == Changelog ==
 
+* 3.1.1
+	* Check WP_Ajax present or not before include file
 * 3.1
 	* Use maps V3 massively
 	* Clean code and use jquery for multiple global maps
 	* Add button en editor for the shortcode on global gmaps
 	* Add search field under gmaps
-	* 
 * 3.0.10
 	* Massive clean of the code source. (try to economize memory!)
 	* Fix small bug with saving meta geo
