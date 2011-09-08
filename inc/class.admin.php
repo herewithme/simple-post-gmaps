@@ -1,25 +1,249 @@
 <?php
-class Simple_Post_Gmaps_Admin {
+class Simple_Post_Gmaps_Admin extends WP_Ajax {
 	var $admin_url 	= '';
 	var $admin_slug = 'simple-post-gmaps-settings';
 	
 	// Error management
 	var $message = '';
 	var $status = '';
-	
+
 	/**
 	 * Constructor
 	 *
 	 * @return AdfeverAdmin
 	 */
 	function Simple_Post_Gmaps_Admin() {
+		
+		parent::__construct();
+		
+		// Laod the javascripts
 		add_action ( 'admin_init', array (&$this, 'loadJavascript' ) );
 		add_action ( 'admin_init', array (&$this, 'checkRelations' ) );
 		
 		add_action ( 'add_meta_boxes', 	array (&$this, 'addMetaBox' ) );
 		add_action ( 'admin_menu', 		array (&$this, 'addMenu' ) );
+		
+		// init process for button control
+		add_action( 'admin_init', array (&$this, 'addButtons' ) );
 	}
 	
+	/**
+	 * The content of the shortcode generator
+	 *
+	 * @param void
+	 * @return void
+	 * @author Nicolas Juen
+	 */
+	function a_spgm_shortcodePrinter(){
+		// Get the syles
+		global $wp_styles;
+		$dir = $wp_styles->text_direction;
+		$ver = md5( "$wp_styles->concat_version{$dir}" );
+		
+		// Make the href for the style of box
+		$href = $wp_styles->base_url . "/wp-admin/load-styles.php?c={$zip}&dir={$dir}&load=media&ver=$ver";
+		echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "' type='text/css' media='all' />\n";
+	?>
+		<div id="media-upload" class=".media-upload-form">
+			<h3 class="media-title"><?php _e( 'Simple Post Gmaps', 'simple-post-gmaps'); ?></h3>
+			<div id="media-items" style="border-bottom:1px solid #DFDFDF;width:100%;">
+				<form id="wp-body" class="sendSMPG media-upload-form type-form validate">
+					<div class="media-blank" >
+						<h4 class="media-sub-title" >
+							<?php _e( 'Shortcode global map', 'simple-post-gmaps'); ?>
+						</h4>
+					<div>
+					<table class="describe">
+						<tbody>
+							<tr>
+								<th valign="top" scope="row" class="label">
+									<span class="alignleft">
+										<label><?php _e( 'Width', 'simple-post-gmaps'); ?></label>
+									</span>
+								</th>
+								<td class="field">
+									<input type="number" min="-1" step="1" value="-1" name="width" >
+									<p class="help"> <?php _e( 'The width of your map, if you put -1 the default value will be used ( 600px ).', 'simple-post-gmaps'); ?></p>
+								</td>
+							</tr>
+							<tr>
+								<th valign="top" scope="row" class="label">
+									<span class="alignleft">
+										<label><?php _e( 'Height', 'simple-post-gmaps'); ?></label>
+									</span>
+								</th>
+								<td class="field">
+									<input type="number" min="-1" step="1" value="-1" name="height" >
+									<p class="help"><?php _e( ' The height of your map, if you put -1 the default value will be used ( 500px ).', 'simple-post-gmaps'); ?></p>
+								</td>
+							</tr>
+							<tr>
+								<th valign="top" scope="row" class="label">
+									<span class="alignleft">
+										<label><?php _e( 'Zoom', 'simple-post-gmaps'); ?></label>
+									</span>
+								</th>
+								<td class="field">
+									<input type="number" min="-1" step="1" value="-1" name="zoom" >
+									<p class="help"><?php _e( ' The intial zoom of your map, if you put -1 the default value will be used ( 5 ) .', 'simple-post-gmaps'); ?></p>
+								</td>
+							</tr>
+							<tr>
+								<th valign="top" scope="row" class="label">
+									<span class="alignleft">
+										<label> 
+											<?php _e( 'Post type', 'simple-post-gmaps'); ?>
+										</label>
+									</span>
+								</th>
+								<td class="field">
+									<select name='post_type'>
+										<option value='any'><?php _e( 'Any', 'simple-post-gmaps'); ?></option>
+									<?php foreach( get_post_types( array( 'public' => true, 'show_ui' => true ), 'objects' ) as $post_type ): 
+										if ( empty( $post_type->labels->name ) )
+											continue;
+										?>
+										<option value="<?php esc_attr_e( $post_type->name ); ?>" ><?php esc_attr_e( $post_type->label ); ?></option>
+									<?php endforeach; ?>
+									</select>
+									<p class="help"> <?php _e( 'Select the post type to use.', 'simple-post-gmaps'); ?></p>
+								</td>
+							</tr>
+							<tr>
+								<th valign="top" scope="row" class="label">
+									<span class="alignleft">
+										<label> <?php _e( 'Taxonomies', 'simple-post-gmaps'); ?> </label>
+									</span>
+								</th>
+								<td class="field">
+									<select name='taxonomy'>
+									<?php foreach( get_taxonomies ( array( 'public' => true, 'show_ui' => true ), 'objects' ) as $taxonomy ): ?>
+										<option value="<?php esc_attr_e( $taxonomy->name ); ?>" ><?php esc_attr_e( $taxonomy->label ); ?></option>
+									<?php endforeach; ?>
+									</select>
+									<p class="help"><?php _e( ' Select a taxonomy related to the post_type to use', 'simple-post-gmaps'); ?></p>
+								</td>
+							</tr>
+							<tr>
+								<th valign="top" scope="row" class="label">
+									<span class="alignleft">
+										<label> <?php _e( 'Display filters', 'simple-post-gmaps'); ?> </label>
+									</span>
+								</th>
+								<td class="field">
+									<select name='display_taxo'>
+										<option value="true" ><?php _e( 'Yes', 'simple-post-gmaps'); ?></option>
+										<option value="" ><?php _e( 'No', 'simple-post-gmaps'); ?></option>
+									</select>
+									<p class="help"><?php _e( 'Display or not the filters by taxonomy.', 'simple-post-gmaps'); ?> </p>
+								</td>
+							</tr>
+							<tr>
+								<th valign="top" scope="row" class="label">
+									<span class="alignleft">
+										<label> <?php _e( 'Display search', 'simple-post-gmaps'); ?> </label>
+									</span>
+								</th>
+								<td class="field">
+									<select name='display_search'>
+										<option value="true" ><?php _e( 'Yes', 'simple-post-gmaps'); ?></option>
+										<option value="" ><?php _e( 'No', 'simple-post-gmaps'); ?></option>
+									</select>
+									<p class="help"> <?php _e( 'Display or not the search form.', 'simple-post-gmaps'); ?> </p>
+								</td>
+							</tr>
+							<tr>
+								<th></th>
+								<td>
+									<input type="submit" class="button-primary" value="Insert shortcode" />
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</form>
+			</div>
+		</div>
+	<?php
+	die();
+	}
+	/**
+	 * Ajax function for gettinf the taxonomies for a post_type
+	 *
+	 * @param void
+	 * @return void
+	 * @author Nicolas Juen
+	 */
+	function a_post_type_taxonomy() {
+		// Check the infos are given
+		if( ( !isset( $_POST['post_type'] ) || !post_type_exists( $_POST['post_type'] ) ) && $_POST['post_type'] != "any" )
+			die();
+		
+		// Get the post _type
+		$post_type = $_POST['post_type'];
+		if( $post_type != 'any' ) {
+			$taxonomies = get_object_taxonomies( array( $post_type ), 'objects' );
+		} else {
+			$taxonomies = get_taxonomies( array( 'public' => true, 'show_ui' => true ), 'objects' );
+		}
+		
+		// init output
+		$output = array(); 
+		// Build the reponse
+		foreach( $taxonomies as $tax ) {
+			if( $tax->public != true || $tax->show_ui != true )
+				continue;
+			
+			$output[ $tax->name ] = $tax->label;
+		}
+		// Echo the result json
+		echo json_encode( $output );
+		// die all
+		die();
+	}
+	
+	/**
+	 * Call the functions for the tiny_mce in conditions
+	 *
+	 * @param void
+	 * @return void|false
+	 * @author Nicolas Juen
+	 */
+	function addButtons() {
+		// Don't bother doing this stuff if the current user lacks permissions
+		if ( ! current_user_can( 'edit_posts' ) && ! current_user_can( 'edit_pages' ) )
+			return false;
+		
+		// If rich editing add the scripts and buttons
+		if ( get_user_option( 'rich_editing' ) == 'true' ) {
+			add_filter( 'mce_external_plugins', array ( &$this,'addScriptTinymce' ) );
+			add_filter( 'mce_buttons', array ( &$this,'registerTheButton' ) );
+		}
+	}
+	
+	/**
+	 * Add the spgm button on tinymce
+	 *
+	 * @param $button : the buttons of tinymce
+	 * @return array
+	 * @author Nicolas Juen
+	 */
+	function registerTheButton( $buttons ) {
+		array_push( $buttons, "|", "spgm" );
+		return $buttons;
+	}
+
+	/**
+	 * Add javascript for button in tinymce
+	 *
+	 * @param $plugin_array : the array of plugins for tinymce
+	 * @return array
+	 * @author Nicolas Juen
+	 */
+	function addScriptTinymce( $plugin_array ) {
+		$plugin_array['spgm'] = SGM_URL.'/inc/ressources/tinymce.min.js';
+		return $plugin_array;
+	}
+
 	/**
 	 * Add a page on menu for plugin settings
 	 *
@@ -29,7 +253,7 @@ class Simple_Post_Gmaps_Admin {
 	function addMenu() {
 		add_options_page( __( 'Simple Post Gmaps', 'simple-post-gmaps' ), __( 'Maps', 'simple-post-gmaps' ), 'manage_options', $this->admin_slug, array( &$this, 'pageManage' ) );
 	}
-	
+
 	/**
 	 * Display options on admin
 	 *
@@ -158,7 +382,7 @@ class Simple_Post_Gmaps_Admin {
 		<?php
 		return true;
 	}
-	
+
 	/**
 	 * Check $_POST datas for relations liaisons
 	 *
@@ -181,7 +405,7 @@ class Simple_Post_Gmaps_Admin {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Display WP alert
 	 *
@@ -225,11 +449,11 @@ class Simple_Post_Gmaps_Admin {
 		
 		if ( in_array( $post_type, (array) $current_settings['custom-types'] ) ) {
 			wp_enqueue_style ( 'simple-gm', SGM_URL . 'inc/ressources/simple.gm.css', array(), SGM_VERSION, 'all' );
-			
-			wp_enqueue_script( 'geo-location', 	SGM_URL . 'inc/ressources/geo-location.min.js', array('jquery'), SGM_VERSION );
-			wp_enqueue_script( 'geo-gears', 	SGM_URL . 'inc/ressources/gears-init.min.js', array('geo-location'), SGM_VERSION );
-			wp_enqueue_script( 'google-jsapi', 	'http://www.google.com/jsapi', array('geo-gears'), SGM_VERSION );
-			wp_enqueue_script( 'simple-gm', 	SGM_URL . 'inc/ressources/simple.gm.min.js', array('google-jsapi'), SGM_VERSION );
+
+			wp_enqueue_script( 'geo-location', 	SGM_URL . 'inc/ressources/geo-location.min.js', array('jquery'), 		SGM_VERSION );
+			wp_enqueue_script( 'geo-gears', 	SGM_URL . 'inc/ressources/gears-init.min.js', 	array('geo-location'), 	SGM_VERSION );
+			wp_enqueue_script( 'google-jsapi', 	'http://www.google.com/jsapi', 					array('geo-gears'), 	SGM_VERSION );
+			wp_enqueue_script( 'simple-gm', 	SGM_URL . 'inc/ressources/simple.gm.min.js', 	array('google-jsapi'), 	SGM_VERSION );
 			
 			// Translate and region ?
 			$current_settings = get_option( SGM_OPTION );
@@ -254,11 +478,11 @@ class Simple_Post_Gmaps_Admin {
 	function addMetaBox() {
 		// Get settings on DB
 		$current_settings = get_option( SGM_OPTION );
-		
+
 		foreach ( get_post_types( array(), 'objects' ) as $post_type ) {
 			if ( !in_array( $post_type->name, (array) $current_settings['custom-types'] ) )
 				continue;
-				
+
 			add_meta_box( 'geo-location', __( 'Location', 'simple-post-gmaps' ), array( &$this, 'blockPostGeo' ), $post_type->name, 'side', 'low' );
 		}
 	}
@@ -292,10 +516,6 @@ class Simple_Post_Gmaps_Admin {
 				<input type="button" class="geo-address-find hide-if-no-js button alignright" value="<?php _e( 'Find Address', 'simple-post-gmaps' ); ?>" />
 				<br class="clear" />
 			</p>
-			
-			<!--
-			<?php _e( '<code>San Francisco, CA</code>, <code>Espagne</code>, <code>1600 Pennsylvania Ave, Washington DC, USA</code>, <code>N 24 9.256, W 110 19.358</code>', 'simple-post-gmaps' ); ?>
-			-->
 			<div id="geo-map" class="geo-map"></div>
 			
 			<p class="howto"><?php _e( 'or click map to pick location', 'simple-post-gmaps' ); ?></p>

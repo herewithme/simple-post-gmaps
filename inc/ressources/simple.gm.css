@@ -45,3 +45,12 @@ margin: 1em 0;
 #my-location .geo-map {
 margin: 1em auto;
 }
+
+.wp_themeSkin a.mce_spgm span.mceIcon {
+	background: url( ./spgm.png );
+	background-position: 2px -22px;
+	background-repeat: no-repeat;
+}
+.wp_themeSkin a.mce_spgm span.mceIcon:hover {
+	background-position: 2px 2px;
+}

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Simple Post GMaps 3.0.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-09-02 16:09+0100\n"
-"PO-Revision-Date: 2010-09-02 16:11+0100\n"
+"POT-Creation-Date: 2011-09-08 14:48+0100\n"
+"PO-Revision-Date: 2011-09-08 14:51+0100\n"
 "Last-Translator: Nicolas <njuen@beapi.fr>\n"
 "Language-Team: Be API <amaury@beapi.fr>\n"
 "MIME-Version: 1.0\n"
@@ -19,142 +19,222 @@ msgstr ""
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-KeywordsList: _e;__\n"
 "X-Poedit-Basepath: .\n"
-"X-Poedit-SearchPath-0: /Users/beapi/Desktop/simple-posts-gmaps/inc\n"
+"X-Poedit-SearchPath-0: ..\n"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:30
+#: ../inc/class.admin.php:37
+#: ../inc/class.admin.php:211
 msgid "Simple Post Gmaps"
 msgstr "Simple Post Gmaps"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:30
+#: ../inc/class.admin.php:42
+msgid "Shortcode global map"
+msgstr "Shortcode de la carte globale"
+
+#: ../inc/class.admin.php:50
+msgid "Width"
+msgstr "Largeur"
+
+#: ../inc/class.admin.php:55
+msgid "The width of your map, if you put -1 the default value will be used ( 600px )."
+msgstr "La largeur de votre carte, si vous mettez -1 la valeur par défaut sera utilisée ( 600 px )"
+
+#: ../inc/class.admin.php:61
+msgid "Height"
+msgstr "Hauteur"
+
+#: ../inc/class.admin.php:66
+msgid " The height of your map, if you put -1 the default value will be used ( 500px )."
+msgstr "La hauteur de votre carte, si vous mettez -1 la valeur par défaut sera utilisée ( 500 px )"
+
+#: ../inc/class.admin.php:72
+msgid "Zoom"
+msgstr "Zoom"
+
+#: ../inc/class.admin.php:77
+msgid " The intial zoom of your map, if you put -1 the default value will be used ( 5 ) ."
+msgstr "Le zoom initla de votre carte, si vous mettez -1 la valeur par défaut sera utilisée ( 5 )"
+
+#: ../inc/class.admin.php:84
+msgid "Post type"
+msgstr "Type de contenu"
+
+#: ../inc/class.admin.php:90
+msgid "Any"
+msgstr "Tous"
+
+#: ../inc/class.admin.php:98
+msgid "Select the post type to use."
+msgstr "Sélectionner le type de contenu à utiliser"
+
+#: ../inc/class.admin.php:104
+msgid "Taxonomies"
+msgstr "Taxonomies"
+
+#: ../inc/class.admin.php:113
+msgid " Select a taxonomy related to the post_type to use"
+msgstr "Sélectionner une taxonomie reliée au type de contenu à utiliser"
+
+#: ../inc/class.admin.php:119
+msgid "Display filters"
+msgstr "Afficher les filtres"
+
+#: ../inc/class.admin.php:124
+#: ../inc/class.admin.php:138
+msgid "Yes"
+msgstr "Oui"
+
+#: ../inc/class.admin.php:125
+#: ../inc/class.admin.php:139
+msgid "No"
+msgstr "Non"
+
+#: ../inc/class.admin.php:127
+msgid "Display or not the filters by taxonomy."
+msgstr "Afficher ou non les filtres par taxonomie"
+
+#: ../inc/class.admin.php:133
+msgid "Display search"
+msgstr "Afficher la recherche"
+
+#: ../inc/class.admin.php:141
+msgid "Display or not the search form."
+msgstr "Afficher ou non le formulaire de recherche"
+
+#: ../inc/class.admin.php:211
 msgid "Maps"
 msgstr "Cartes"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:70
+#: ../inc/class.admin.php:251
 msgid "Simple Post Gmaps : Settings"
 msgstr "Simple Post Gmaps : Réglages"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:73
+#: ../inc/class.admin.php:254
 msgid "Custom Post Types"
 msgstr "Type de contenu"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:78
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:84
+#: ../inc/class.admin.php:259
+#: ../inc/class.admin.php:265
 msgid "Custom type"
 msgstr "Type de contenu"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:79
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:85
+#: ../inc/class.admin.php:260
+#: ../inc/class.admin.php:266
 msgid "Active Maps ?"
 msgstr "Activer la géolocalisation ?"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:113
+#: ../inc/class.admin.php:294
 msgid "Google Maps"
 msgstr "Région de Google Maps"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:116
+#: ../inc/class.admin.php:297
 msgid "Google Maps Region"
 msgstr "Région de Google Maps"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:120
+#: ../inc/class.admin.php:301
 msgid "You can define the default region of Google Maps for improve search results. The <code>region</code> parameter accepts <a href=\"http://www.unicode.org/reports/tr35/#Unicode_Language_and_Locale_Identifiers\">Unicode region subtag identifiers</a> which (generally) have a one-to-one mapping to country code Top-Level Domains (ccTLDs). Most Unicode region identifiers are identical to ISO 3166-1 codes, with some notable exceptions. For example, Great Britain's ccTLD is \"uk\" (corresponding to the domain <code>.co.uk</code>) while its region identifier is \"GB.\""
 msgstr "Vous pouvez définir la région par défaut de Google Maps pour améliorer les résultats de la recherche. Le paramètre <code>region</code> accepte <a href=\"http://www.unicode.org/reports/tr35/#Unicode_Language_and_Locale_Identifiers\">les identifiants Unicode region subtag</a> qui correspondent généralement mot pour mot au nom de domaine de premier niveau du pays (ccTLDs). La plupart des codes régions sont identiques au standard ISO 3166-1 codes, avec quelques exceptions notables. Par exemple, le domaine de premier niveau de la Grande-Bretagne est \"uk\" (correspondant au domaine<code>.co.uk</code>) sera identifié par le code région \"GB.\""
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:124
+#: ../inc/class.admin.php:305
 msgid "Google Maps Language"
 msgstr "Langue de Google Maps"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:128
+#: ../inc/class.admin.php:309
 msgid "You can define the language of Google Maps interface. Use <a href=\"http://spreadsheets.google.com/pub?key=p9pdwsai2hDMsLkXsoM05KQ&gid=1\">this Google page of documentation</a> for find your code language. Example : French, put \"fr\""
 msgstr "Vous pouvez définir la langue de l'interface Google Maps. Utilisez <a href=\"http://spreadsheets.google.com/pub?key=p9pdwsai2hDMsLkXsoM05KQ&gid=1\">cette page de la documentation Google</a> pour trouver le code correspondant à votre langue. Exemple pour le français, saisissez \"fr\""
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:133
+#: ../inc/class.admin.php:314
 msgid "Info window content (advanced usage !)"
 msgstr "Infos de la fenêtre de contenus ( usage avancé ! )"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:136
+#: ../inc/class.admin.php:317
 msgid "Code HTML for tooltip Google Maps"
 msgstr "Code HTML pour le repère googlemap"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:142
+#: ../inc/class.admin.php:323
 msgid "End of content"
 msgstr "Fin du contenu"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:145
+#: ../inc/class.admin.php:326
 msgid "Do not add the hidden coordinates at the end of the article"
 msgstr "Ne pas ajouter les coordonnées cachées en fin d'article"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:153
+#: ../inc/class.admin.php:334
 msgid "Save settings"
 msgstr "Enregistrer les réglages"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:180
+#: ../inc/class.admin.php:361
 msgid "Settings updated with success !"
 msgstr "Réglages mis à jour avec succès !"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:262
+#: ../inc/class.admin.php:443
 msgid "Location"
 msgstr "Localisation"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:285
+#: ../inc/class.admin.php:466
 msgid "Enter address:"
 msgstr "Saisir l'adresse :"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:286
+#: ../inc/class.admin.php:467
 msgid "Ico refreshing"
 msgstr "Icône d'actualisation"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:291
+#: ../inc/class.admin.php:472
 msgid "Auto Detect"
 msgstr "Détection automatique"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:292
+#: ../inc/class.admin.php:473
 msgid "Find Address"
 msgstr "Trouver l'adresse"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:297
-msgid "<code>San Francisco, CA</code>, <code>Espagne</code>, <code>1600 Pennsylvania Ave, Washington DC, USA</code>, <code>N 24 9.256, W 110 19.358</code>"
-msgstr "<code>San Francisco, CA</code>, <code>Espagne</code>, <code>1600 Pennsylvania Ave, Washington DC, USA</code>, <code>N 24 9.256, W 110 19.358</code>"
-
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:301
+#: ../inc/class.admin.php:478
 msgid "or click map to pick location"
 msgstr "ou cliquez sur la carte pour choisir une destination"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.admin.php:308
+#: ../inc/class.admin.php:485
 msgid "This post's location is public"
 msgstr "La localisation de l'article est publique"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.client.php:30
+#: ../inc/class.client.php:65
 msgid "Read more"
 msgstr "Lire la suite"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.client.php:321
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.client.php:322
+#: ../inc/class.client.php:449
+#: ../inc/class.client.php:450
 msgid "All posts on Gmaps"
 msgstr "Tous les articles sur Google Maps"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.widget.php:16
+#: ../inc/class.widget.php:16
 msgid "Related Maps for Post"
 msgstr "Carte relative à l'article"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.widget.php:16
+#: ../inc/class.widget.php:16
 msgid "Display the google maps of relative post on singular view."
 msgstr "Afficher la carte Google Maps d'un article sur la vue détaillée."
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.widget.php:89
+#: ../inc/class.widget.php:89
 msgid "Title:"
 msgstr "Titre :"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.widget.php:93
+#: ../inc/class.widget.php:93
 msgid "Width:"
 msgstr "Largeur :"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.widget.php:97
+#: ../inc/class.widget.php:97
 msgid "Height:"
 msgstr "Hauteur :"
 
-#: /Users/beapi/Desktop/simple-posts-gmaps/inc/class.widget.php:101
+#: ../inc/class.widget.php:101
 msgid "Zoom:"
 msgstr "Zoom :"
+
+#~ msgid ""
+#~ "<code>San Francisco, CA</code>, <code>Espagne</code>, <code>1600 "
+#~ "Pennsylvania Ave, Washington DC, USA</code>, <code>N 24 9.256, W 110 "
+#~ "19.358</code>"
+#~ msgstr ""
+#~ "<code>San Francisco, CA</code>, <code>Espagne</code>, <code>1600 "
+#~ "Pennsylvania Ave, Washington DC, USA</code>, <code>N 24 9.256, W 110 "
+#~ "19.358</code>"
 
 #~ msgid "Simple Post GMaps"
 #~ msgstr "Simple Post GMaps"

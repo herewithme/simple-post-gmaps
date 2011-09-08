@@ -10,47 +10,91 @@ class Simple_Post_Gmaps_Client {
 	 * @author Amaury Balmer
 	 */
 	function Simple_Post_Gmaps_Client() {
-		// Get settings on DB
-		$current_settings = get_option( SGM_OPTION );
-		
-		if ( !isset( $current_settings['tooltip'] ) && empty( $current_settings['tooltip'] ) ) {
-			$current_settings['tooltip'] = SGM_TOOLTIP;
-		}
-		
 		if ( !is_admin() ) {
 			add_filter( 'the_content', 	array(&$this, 'addGeoMetaHtml'), 2 );
 			
 			add_action( 'wp_head', 		array(&$this, 'addGmapsV3Header') );
 			add_action( 'wp_head', 		array(&$this, 'displayGeoMeta') );
 			
-			wp_enqueue_script( 'jquery' );
-			wp_enqueue_script( 'google-jsapi', 	'http://www.google.com/jsapi', array(), SGM_VERSION );
-			wp_enqueue_script( 'geoxml3', 		SGM_URL . 'lib/geoxml3.min.js', array('google-jsapi'), SGM_VERSION );
-			wp_localize_script( 'geoxml3', 'geoxml3L10n', array(
-				'readmore' => __('Read more', 'simple-post-gmaps'),
-				'tooltip' => $current_settings['tooltip']
-			) );
+			add_action( 'template_redirect', array(&$this, 'addScripts') );
 			
 			add_filter( 'query_vars', array( &$this, 'addQueryVar' ) );
 			add_action( 'parse_query', array( &$this, 'parseQuery' ) );
 		}
 		
+		// Shortcodes
 		add_shortcode( 'post-googlemaps', 	array(&$this, 'shortcodePostGmaps') );
 		add_shortcode( 'global-googlemaps', array(&$this, 'shortcodeGlobalGmaps') );
 		
-		add_action( 'init', 		array(&$this, 'checkKmlPosts') );
+		add_action( 'init', array(&$this, 'checkKmlPosts') );
 		
 		// Keep update geo table
-		add_action( 'save_post', 	array(&$this, 'savePost' ) );
-		add_action( 'deleted_post',	array(&$this, 'deletedPost' ) );
-		add_action( 'publish_to_draft',	array(&$this, 'deletedPost' ) );
-		add_action( 'publish_to_private',	array(&$this, 'deletedPost' ) );
-		add_action( 'publish_to_future',	array(&$this, 'deletedPost' ) );
-		add_action( 'publish_to_pending',	array(&$this, 'deletedPost' ) );
-		add_action( 'publish_to_new',	array(&$this, 'deletedPost' ) );
+		add_action( 'save_post', 				array(&$this, 'savePost' ) );
+		add_action( 'deleted_post',				array(&$this, 'deletedPost' ) );
+		add_action( 'publish_to_draft',			array(&$this, 'deletedPost' ) );
+		add_action( 'publish_to_private',		array(&$this, 'deletedPost' ) );
+		add_action( 'publish_to_future',		array(&$this, 'deletedPost' ) );
+		add_action( 'publish_to_pending',		array(&$this, 'deletedPost' ) );
+		add_action( 'publish_to_new',			array(&$this, 'deletedPost' ) );
 		
-		add_filter( 'styles_kml', 	array(&$this, 'addKmlStyles'), 2 );
-		add_filter( 'list_terms_exclusions',     array( &$this, 'hideEmpty'), 10, 2);
+		add_filter( 'styles_kml', 				array(&$this, 'addKmlStyles'), 2 );
+		add_filter( 'list_terms_exclusions',	array( &$this, 'hideEmpty'), 10, 2);
+	}
+
+	/**
+	 * Add optionnaly the css/javascript for the gmaps
+	 *
+	 * @param void
+	 * @return void
+	 * @author Nicolas Juen
+	 */
+	function addScripts() {
+		// Get settings on DB
+		$current_settings = get_option( SGM_OPTION );
+		
+		// Check post_type
+		if( !isset( $current_settings['custom-types'] ) || empty( $current_settings['custom-types'] ) )
+			return false;
+		
+		// Check if this singular is registered
+		if( !is_singular( $current_settings['custom-types'] ) )
+			return false;
+
+		// Set default tooltip
+		if ( !isset( $current_settings['tooltip'] ) && empty( $current_settings['tooltip'] ) ) {
+			$current_settings['tooltip'] = SGM_TOOLTIP;
+		}
+
+		// Enqueue scripts
+		wp_enqueue_script( 'jquery' );
+		wp_enqueue_script( 'google-jsapi', 	'http://maps.google.com/maps/api/js?libraries=places&sensor=false', array(), SGM_VERSION );
+		wp_enqueue_script( 'geoxml3', 		SGM_URL . 'lib/geoxml3.js', array('google-jsapi'), SGM_VERSION );
+		wp_enqueue_script( 'spgm-map', 		SGM_URL . 'inc/ressources/spgm-map.min.js', array( 'jquery', 'google-jsapi' , 'geoxml3' ), SGM_VERSION, true );
+		
+		wp_localize_script( 'geoxml3', 'geoxml3L10n', array(
+			'readmore' => __('Read more', 'simple-post-gmaps'),
+			'tooltip' => $current_settings['tooltip']
+		) );
+		
+		// Enqueue CSS if needed, correct bug with twenty eleven
+		add_action( 'wp_head', array(&$this, 'addCss') );
+	}
+
+	/**
+	 * Correct bug with twenty eleven
+	 *
+	 * @param void
+	 * @return void
+	 * @author Nicolas Juen
+	 */
+	function addCss(){
+	?>
+	<style>	
+		.gmaps img{
+			max-width:none;
+		}
+	</style>
+	<?php
 	}
 	
 	/**
@@ -122,12 +166,6 @@ class Simple_Post_Gmaps_Client {
 		
 		if ( isset( $current_settings['language'] ) && !empty( $current_settings['language'] ) )
 			$args .= '&language='.$current_settings['language'];
-		
-		$output  = '<script type="text/javascript">' . "\n";
-			$output .= '<!--' . "\n";
-			$output .= 'google.load( "maps", "3", { other_params: "sensor=false'.$args.'" } );' . "\n";
-			$output .= '-->' . "\n";
-		$output .= '</script>' . "\n";
 		
 		echo $output;
 	}
@@ -249,9 +287,10 @@ class Simple_Post_Gmaps_Client {
 			'display_taxo' 		=> false,
 			'taxonomy' 			=> '',
 			'post_type' 		=> '',
+			'search'			=> false
 		), $atts ) );
-		
-		return $this->buildGlobalMaps( $width, $height, $zoom, $display_taxo, $taxonomy, $post_type );
+
+		return $this->buildGlobalMaps( $width, $height, $zoom, $display_taxo, $taxonomy, $post_type, $search );
 	}
 
 	/**
@@ -263,13 +302,33 @@ class Simple_Post_Gmaps_Client {
 	 * @return string
 	 * @author Amaury Balmer & Nicolas Juen
 	 */
-	function buildGlobalMaps( $width = '600px', $height = '500px', $zoom = 5, $display_taxo = false, $taxonomy = '', $post_type ='' ) {
+	function buildGlobalMaps(  $width = '600px', $height = '500px', $zoom = 5, $display_taxo = false, $taxonomy = '', $post_type ='', $search = false ) {
+		global $map_id;
+		
+		// Init output
+		$output = '';
+		
+		// For multiple globalmaps
+		if( !isset( $map_id ) )
+			$map_id = 0;
+		else
+			$map_id++;
+		
+		// Check if px at the end, add if needed
+		if( !strpos( $width, 'px' ) )
+			$width = $width.'px';
+		
+		// Check if px at the end, add if needed
+		if( !strpos( $height, 'px' ) )
+			$height = $height.'px';
+
 		$url_request_taxo = '';
 		$taxonomies = array();
+		$firstTaxonomy = '';
 		if ( $display_taxo == true ) {
 			// Get the taxonomies in the short code if needed
 			if ( empty( $taxonomy ) )
-				$taxonomies =  get_taxonomies(array(), 'objects' );
+				$taxonomies =  get_taxonomies( array( 'public' => true, 'show_ui' => true ), 'objects' );
 			elseif ( !is_array( $taxonomy ) )
 				if ( taxonomy_exists( $taxonomy ) )
 					$taxonomies[] = get_taxonomy( $taxonomy );
@@ -292,45 +351,41 @@ class Simple_Post_Gmaps_Client {
 			}
 		}
 		
-		$output .= '<div id="map-global-post" style="width: '.$width.';height: '.$height.';margin:0 auto;text-align:center;"></div>' . "\n";
-		$output .= '<script type="text/javascript">' . "\n";
-			$output .= '<!--' . "\n";
-			$output .= '
-				var myOptions = {
-					zoom: '.$zoom.',
-					mapTypeId: google.maps.MapTypeId.ROADMAP,
-					mapTypeControl: true,
-					navigationControl: true
-				}
-				var map = new google.maps.Map(document.getElementById("map-global-post"), myOptions);
-				
-				var geoXml = new geoXML3.parser({map:map});
-				geoXml.parse("'.home_url( '/' ).'?showposts_kml=true&post_type='.$post_type.$url_request_taxo.'");
-			';
-			$output .= '-->' . "\n";
-		$output .= '</script>' . "\n";
+		// Make the wrapper for the taxonomies and the filters and search
+		$output .= '<div class="spgmWrapper">'."\n"; 
+			$output .= '<form method="post" class="spgmSettings">'."\n"; 
+				$output .= '<input type="hidden" name="spgm_post_type" value="'.esc_attr( $post_type ).'" />'."\n"; 
+				$output .= '<input type="hidden" name="spgm_requestTaxo" value="'.esc_attr( $url_request_taxo ).'"/>'."\n"; 
+				$output .= '<input type="hidden" name="spgm_firstTaxo" value="'.esc_attr( $firstTaxonomy ).'"/>'."\n"; 
+				$output .= '<input type="hidden" name="spgm_zoom" value="'.esc_attr( $zoom ).'"/>'."\n"; 
+			$output .= '</form>'."\n"; 
+		$output .= '<div class="gmaps" id="map-global-post-'.esc_attr( $map_id ).'" style="width: '.esc_attr( $width ).';height: '.esc_attr( $height ).';"></div>'."\n";
+			if( $search == true ) {
+				$output .= '<form class="spgmSearch">'."\n"; 
+					$output .= '<input type="text" name="spgm_search" />'."\n"; 
+					$output .= '<input type="submit" name="spgm_ok" value="'.esc_attr__( 'Search', '' ).'" />'."\n"; 
+				$output .= '</form>' . "\n";
+			}
 		
-		if ( empty($taxonomies) )
-			return apply_filters( 'buildGlobalMaps', $output );
+		// If no taxonomies just display the ap with filter
+		if ( empty( $taxonomies ) )
+			return apply_filters( 'buildGlobalMaps', $output.'</div>' );
 		
-		//Get all the posts geolocalized
-		global $wpdb;							
-		$results = $wpdb->get_col( "SELECT post_id FROM $wpdb->simple_post_gmaps" );
+		// Get the restults
+		$results = $this->getPostsWithGeo();
 		
-		$output .= '<div id="termsFiltering">';
+		// Filter terms
+		$output .= '<div class="termsFiltering" id="termsFiltering-'.$map_id.'">';
 			foreach( $taxonomies as $taxonomy ) {
 				//Get the terms with posts with coordinates
-				if ( $taxonomy->name == 'famille-pate' ) 
-					$terms = get_terms( $taxonomy->name, array( 'hide_empty' => true, 'gmaps' => $taxonomy->name , 'orderby' => 'name', 'order' => 'DESC') );
-				else
-					$terms = get_terms( $taxonomy->name, array( 'hide_empty' => true, 'gmaps' => $taxonomy->name , 'orderby' => 'name', 'order' => 'ASC') );
-				
+				$terms = get_terms( $taxonomy->name, array( 'hide_empty' => true, 'gmaps' => $taxonomy->name ) );
+			
 				//Go to the next taxonomy if no terms
 				if ( empty( $terms ) )
 					continue;
 			
-				$output .= '<div id="'.$taxonomy->name.'">';
-					$output .= '<h3>'.apply_filters('taxonomy_name', $taxonomy->labels->name).'</h3>';
+				$output .= '<div class="'.$taxonomy->name.'" id="'.$taxonomy->name.'">';
+					$output .= '<h3>'.apply_filters('taxonomy_name', $taxonomy->labels->name ).'</h3>';
 			
 					//Display a label with the checkbox
 					foreach( $terms as $term ) {
@@ -345,59 +400,21 @@ class Simple_Post_Gmaps_Client {
 							continue;
 						
 						$output .= '<p>' . "\n";
-							$output .= '<input type="checkbox" id="'.$term->term_id.'" value="'.$term->term_id.'" />' . "\n";
+							$output .= '<input type="checkbox" id="'.esc_attr( $map_id.'-'.$term->term_id ).'" value="'.esc_attr( $term->term_id ).'" />' . "\n";
 							
 							//Display the legend icon if present
 							if( is_file(TEMPLATEPATH . '/gmaps/ico-legend-'.$term->taxonomy.'-'.$term->term_id.'.png') )
-								$output .= '<img src="'.get_bloginfo( 'template_url' ) . '/gmaps/ico-legend-'.$term->taxonomy.'-'.$term->term_id.'.png'.'" />';
+								$output .= '<img src="'.get_bloginfo( 'template_url' ) . '/gmaps/ico-legend-'.esc_attr( $term->taxonomy.'-'.$term->term_id ).'.png'.'" />';
 								
-							$output .= '<label for="'.$term->term_id.'">'.$term->name.'</label>' . "\n";
+							$output .= '<label for="'.esc_attr( $map_id.'-'.$term->term_id ).'">'.esc_html( $term->name ).'</label>' . "\n";
 						$output .='</p>' . "\n";
 					}
 				$output .= '</div>' . "\n";
 			}
-		$output .= '</div>' . "\n";
+			$output .= '</div>'. "\n";
+		$output .=	'</div>' . "\n";
 		
-		$output .= '<script type="text/javascript">' . "\n";
-			$output .= '<!--' . "\n";
-			$output .= '
-				jQuery(document).ready(function() {
-					//Add the filter event on buttons
-					jQuery("#termsFiltering input").click( filter );
-				});
-				
-				//Change the map for filtering
-				function filter() {
-					//Get all inputs checked
-					var inputs = jQuery("#termsFiltering input:checked");
-					var termsFilter = "";
-					var taxonomiesFilter = "";
-					
-					if ( inputs == "" )
-						return false;
-					
-					//Foreach inputs get set the parameters
-					inputs.each(function(){
-						// Set parameters to filter the taxonomies
-						taxonomiesFilter += "&taxonomiesFilter[]="+jQuery(this).parent().parent("div").attr("id");
-						
-						// Set parameters for the terms
-						termsFilter += "&termsFilter[]="+this.value;
-					});
-					
-					//Create the new map
-					var map = new google.maps.Map(document.getElementById("map-global-post"), myOptions);
-					
-					//Set the new parser
-					var geoXml = new geoXML3.parser({map:map});
-					
-					//Get the new coordinates
-					geoXml.parse("'.home_url( '/' ).'?showposts_kml=true&post_type='.$post_type.'"+termsFilter+taxonomiesFilter+"&taxonomiesFilter[]='.$firstTaxonomy.'");
-				}
-				';
-			$output .= ' -->' . "\n";
-		$output .= '</script>' . "\n";
-		
+		//Return with filters
 		return apply_filters( 'buildGlobalMaps', $output );
 	}
 	
@@ -443,14 +460,14 @@ class Simple_Post_Gmaps_Client {
 
 			// Get the posts in the taxonomy and terms
 			$postIn = array();
-			if ( !empty($terms) && !empty($taxonomies) )
+			if ( !empty( $terms  ) && !empty( $taxonomies ) )
 				$postIn = get_objects_in_term( $terms, $taxonomies );
-				
+			
 			$post_ids = array_intersect($post_ids, $postIn);
 		}
 		
 		// Make the query
-		$query_posts = new WP_Query( array('post__in' => $post_ids, 'post_type' => $post_type, 'nopaging' => 'true') );
+		$query_posts = new WP_Query( array( 'post__in' => $post_ids, 'post_type' => $post_type, 'nopaging' => 'true', 'status' => 'publish' ) );
 			
 		echo '<?xml version="1.0" encoding="' . get_bloginfo( 'charset' ) . '"?' . ">\n";
 		?>
@@ -458,7 +475,7 @@ class Simple_Post_Gmaps_Client {
 			<Document>
 				<name><?php _e( 'All posts on Gmaps', 'simple-post-gmaps' ); ?></name>
 				<description><![CDATA[<?php _e( 'All posts on Gmaps', 'simple-post-gmaps' ); ?>]]></description>
-				<?php echo apply_filters( 'styles_kml', '', $post_type ); ?>
+				<?php echo apply_filters( 'styles_kml', '' ); ?>
 				
 				<?php
 				foreach( (array) $query_posts->posts as $post ) :
@@ -470,14 +487,10 @@ class Simple_Post_Gmaps_Client {
 						continue;
 					
 					// Get the first term id for the icon style
-					$style_url = '';
+					$style_url = '<styleUrl></styleUrl>' . "\n";
 					if ( !empty($taxonomies) ) {
 						$term_id = $this->getFirstTerm( $post->ID, $taxonomies[0], 'term_id' );
-						if ( $term_id != false ) {
-							$style_url = '<styleUrl>#ico-'.$taxonomies[0].'-'.$term_id.'</styleUrl>' . "\n";
-						} else {
-							$style_url = '<styleUrl>#ico-'.$taxonomies[0].'-default</styleUrl>' . "\n";
-						}
+						$style_url = '<styleUrl>#ico-'.$taxonomies[0].'-'.$term_id.'</styleUrl>' . "\n";
 					}
 					?>
 					<Placemark>
@@ -491,8 +504,7 @@ class Simple_Post_Gmaps_Client {
 					</Placemark>
 				<?php endforeach; ?>
 			</Document>
-		</kml>
-		<?php
+		</kml><?php
 	}
 	
 	/**
@@ -540,41 +552,23 @@ class Simple_Post_Gmaps_Client {
 	 * @return void
 	 * @author Amaury Balmer
 	 */
-	function addKmlStyles( $output = '', $post_type = '' ) {
-		if ( !empty($post_type) )
-			$taxos = get_object_taxonomies($post_type);
-		else
-			$taxos = get_taxonomies();
-		
-		$terms = get_terms( $taxos, array( 'hide_empty'=> true ) );
-		
-		foreach( $taxos as $taxo ) {
-			if ( !is_file(TEMPLATEPATH . '/gmaps/ico-'.$taxo.'-default.png') )
-				continue;
-			
-			$output .= '<Style id="ico-'.$taxo.'-default">' . "\n";
-				$output .= '<IconStyle id="myico'.$taxo.'">' . "\n";
-					$output .= '<Icon>' . "\n";
-						$output .= '<href>'.get_bloginfo('template_directory') . '/gmaps/ico-'.$taxo.'-default.png</href>' . "\n";
-					$output .= '</Icon>' . "\n";
-				$output .= '</IconStyle>' . "\n";
-			$output .= '</Style>' . "\n";
-		}
+	function addKmlStyles() {
+		$terms = get_terms( get_taxonomies(), array( 'hide_empty'=> true ) );
 		
 		foreach( (array) $terms as $term ) :
-			if ( !is_file(TEMPLATEPATH . '/gmaps/ico-'.$term->taxonomy.'-'.$term->term_id.'.png') )
+			
+			if ( !is_file( TEMPLATEPATH . '/gmaps/ico-'.$term->taxonomy.'-'.$term->term_id.'.png' ) )
 				continue;
-				
-			$output .= '<Style id="ico-'.$term->taxonomy.'-'.$term->term_id.'">' . "\n";
-				$output .= '<IconStyle id="myico'.$term->term_id.'">' . "\n";
-					$output .= '<Icon>' . "\n";
-						$output .= '<href>'.get_bloginfo('template_directory') . '/gmaps/ico-'.$term->taxonomy.'-'.$term->term_id.'.png'.'</href>' . "\n";
-					$output .= '</Icon>' . "\n";
-				$output .= '</IconStyle>' . "\n";
-			$output .= '</Style>' . "\n";
+			?>
+			<Style id="ico-<?php echo $term->taxonomy.'-'.$term->term_id; ?>">
+				<IconStyle id="myico<?php echo $term->term_id; ?>">
+					<Icon>
+						<href><?php echo get_bloginfo('template_directory') . '/gmaps/ico-'.$term->taxonomy.'-'.$term->term_id.'.png'; ?></href>
+					</Icon>
+				</IconStyle>
+			</Style>
+			<?php
 		endforeach;
-		
-		return $output;
 	}
 	
 	/**
@@ -741,8 +735,6 @@ class Simple_Post_Gmaps_Client {
 	 * @author Nicolas Juen
 	 */
 	function fixQueryFlags( $query ) {
-		remove_action( 'pre_get_posts', array(&$this, 'fixQueryFlags') );
-		
 		// Remove useless parts
 		$query->is_tax = false;
 		$query->is_category = false;
@@ -764,8 +756,6 @@ class Simple_Post_Gmaps_Client {
 	 * @author Nicolas Juen
 	 */
 	function buildQueryJoin( $join = '', $current_query ) {
-		remove_action( 'posts_join_request', array( &$this, 'buildQueryJoin' ), 10, 2 );
-		
 		global $wpdb;
 		
 		$join .= ' INNER JOIN '.$wpdb->simple_post_gmaps.' ON ( '.$wpdb->simple_post_gmaps.'.post_id = '.$wpdb->prefix.'posts.ID )';
@@ -782,8 +772,6 @@ class Simple_Post_Gmaps_Client {
 	 * @author Nicolas Juen
 	 */
 	function buildQueryFields( $fields = '', $current_query ) {
-		remove_action( 'posts_fields_request', array( &$this, 'buildQueryFields' ), 10, 2 );
-		
 		global $wpdb;
 		
 		$fields .= ', round((ACOS(COS(RADIANS('.$wpdb->simple_post_gmaps.'.lat))*COS(RADIANS('.$this->latitude.'))*COS(RADIANS('.$this->longitude.')-RADIANS('.$wpdb->simple_post_gmaps.'.long))+SIN(RADIANS('.$this->latitude.'))*SIN(RADIANS('.$wpdb->simple_post_gmaps.'.lat)))*6366),2) AS `distance`';
@@ -800,8 +788,6 @@ class Simple_Post_Gmaps_Client {
 	 * @author Nicolas Juen
 	 */
 	function buildQueryOrder( $order_by = '', $current_query ) {
-		remove_action( 'posts_orderby_request', array( &$this, 'buildQueryOrder' ), 10, 2 );
-		
 		$order_by = 'distance';
 		return $order_by;
 	}
