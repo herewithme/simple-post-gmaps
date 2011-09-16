@@ -5,7 +5,7 @@ Plugin URI: http://www.beapi.fr
 Description: Allow to geolocalise post with Google Maps (API in v3). No google maps key are required. You can choose with the map the position of the post on admin. You can use shortcode for display the map, or the widget. You can also display a maps with each posts localized on the same maps !
 Author: BeAPI
 Author URI: http://www.beapi.fr
-Version: 3.1.1
+Version: 3.0.1
 Text Domain: simple-post-gmaps
 Domain Path: /languages/
 Network: false
