@@ -73,7 +73,8 @@ class Simple_Post_Gmaps_Client {
 		
 		wp_localize_script( 'geoxml3', 'geoxml3L10n', array(
 			'readmore' => __('Read more', 'simple-post-gmaps'),
-			'tooltip' => $current_settings['tooltip']
+			'tooltip' => $current_settings['tooltip'],
+			'kml_url' => home_url( '?showposts_kml=true' )
 		) );
 		
 		// Enqueue CSS if needed, correct bug with twenty eleven
@@ -472,7 +473,7 @@ class Simple_Post_Gmaps_Client {
 		
 		// Make the query
 		$query_posts = new WP_Query( array( 'post__in' => $post_ids, 'post_type' => $post_type, 'nopaging' => 'true', 'status' => 'publish' ) );
-			
+		
 		echo '<?xml version="1.0" encoding="' . get_bloginfo( 'charset' ) . '"?' . ">\n";
 		?>
 		<kml xmlns="http://www.opengis.net/kml/2.2">
@@ -486,6 +487,7 @@ class Simple_Post_Gmaps_Client {
 					setup_postdata($post);
 					
 					//Get the post meta for the geolocalisation, continue if no metas
+					$meta = '';
 					$meta = get_post_meta( $post->ID, 'geo', true );
 					if ( empty( $meta ) || empty( $meta['longitude'] )  )
 						continue;
