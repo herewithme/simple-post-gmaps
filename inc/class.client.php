@@ -198,21 +198,25 @@ class Simple_Post_Gmaps_Client {
 	 * @author Amaury Balmer
 	 */
 	function shortcodePostGmaps($atts) {
-		global $post;
-		
-		// Geo value exist ?
-		$geo_value = get_post_meta( $post->ID, 'geo', true );
-		if ( $geo_value == false || empty( $geo_value['latitude'] ) ) {
-			return '';
-		}
-		
 		extract( shortcode_atts( array(
 			'width' => '400px',
 			'height' => '300px',
 			'zoom' => '10',
+			'post_id' => 0
 		), $atts ) );
 		
-		return $this->buildPostGmaps( $post->ID, $width, $height, $geo_value['latitude'], $geo_value['longitude'], $zoom, get_the_title() );
+		if ( (int) $post_id == 0 ) {
+			global $post;
+			$post_id = $post->ID;
+		}
+		
+		// Geo value exist ?
+		$geo_value = get_post_meta( $post_id, 'geo', true );
+		if ( $geo_value == false || empty( $geo_value['latitude'] ) ) {
+			return '';
+		}
+		
+		return $this->buildPostGmaps( $post_id, $width, $height, $geo_value['latitude'], $geo_value['longitude'], $zoom, get_the_title($post_id) );
 	}
 	
 	/**
