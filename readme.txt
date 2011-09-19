@@ -3,8 +3,8 @@ Contributors: momo360modena, rahe
 Donate link: http://www.beapi.fr/donate/
 Tags : google, maps, googlemaps, simple series, map, geo, geolocalize, localisation
 Requires at least: 3.0
-Tested up to: 3.0.1
-Stable tag: 3.0.10
+Tested up to: 3.2.1
+Stable tag: 3.1.1
 
 == Description ==
 
@@ -26,6 +26,9 @@ Read the sample file for an example of query.
 
 * 3.1.1
 	* Check WP_Ajax present or not before include file
+	* Add global maps shortcode configurator in the admin editor
+	* Externalize the javascipt for performances
+	* Add a search feld for centering the map in one location
 * 3.1
 	* Use maps V3 massively
 	* Clean code and use jquery for multiple global maps

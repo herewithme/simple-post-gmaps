@@ -53,7 +53,7 @@ jQuery( function(){
 				var _self = this;
 				this.map = new google.maps.Map( el, this.options );
 				this.geoXml = new geoXML3.parser( { map:this.map } );
-				this.geoXml.parse( "http://dev.beapi.fr/dev-nicolas/?showposts_kml=true"+params );
+				this.geoXml.parse( geoxml3L10n.kml_url+params );
 			},
 			centerMap: function( el ){
 				var _self = this ;
