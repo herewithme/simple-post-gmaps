@@ -447,26 +447,24 @@ class Simple_Post_Gmaps_Admin extends WP_Ajax {
 			$post_type = ( !isset( $_GET['post_type'] ) ) ? 'post' : stripslashes( $_GET['post_type'] );
 		}
 		
-		if ( in_array( $post_type, (array) $current_settings['custom-types'] ) ) {
-			wp_enqueue_style ( 'simple-gm', SGM_URL . 'inc/ressources/simple.gm.css', array(), SGM_VERSION, 'all' );
+		wp_enqueue_style ( 'simple-gm', SGM_URL . 'inc/ressources/simple.gm.css', array(), SGM_VERSION, 'all' );
 
-			wp_enqueue_script( 'geo-location', 	SGM_URL . 'inc/ressources/geo-location.min.js', array('jquery'), 		SGM_VERSION );
-			wp_enqueue_script( 'geo-gears', 	SGM_URL . 'inc/ressources/gears-init.min.js', 	array('geo-location'), 	SGM_VERSION );
-			wp_enqueue_script( 'google-jsapi', 	'http://www.google.com/jsapi', 					array('geo-gears'), 	SGM_VERSION );
-			wp_enqueue_script( 'simple-gm', 	SGM_URL . 'inc/ressources/simple.gm.min.js', 	array('google-jsapi'), 	SGM_VERSION );
-			
-			// Translate and region ?
-			$current_settings = get_option( SGM_OPTION );
+		wp_enqueue_script( 'geo-location', 	SGM_URL . 'inc/ressources/geo-location.min.js', array('jquery'), 		SGM_VERSION );
+		wp_enqueue_script( 'geo-gears', 	SGM_URL . 'inc/ressources/gears-init.min.js', 	array('geo-location'), 	SGM_VERSION );
+		wp_enqueue_script( 'google-jsapi', 	'http://www.google.com/jsapi', 					array('geo-gears'), 	SGM_VERSION );
+		wp_enqueue_script( 'simple-gm', 	SGM_URL . 'inc/ressources/simple.gm.min.js', 	array('google-jsapi'), 	SGM_VERSION );
+		
+		// Translate and region ?
+		$current_settings = get_option( SGM_OPTION );
 
-			$args = array( 'regionL10n' => '', 'languageL10n' => '' );
-			if ( isset( $current_settings['region'] ) && !empty( $current_settings['region'] ) )
-				$args['region'] = '&region='.$current_settings['region'];
+		$args = array( 'regionL10n' => '', 'languageL10n' => '' );
+		if ( isset( $current_settings['region'] ) && !empty( $current_settings['region'] ) )
+			$args['region'] = '&region='.$current_settings['region'];
 
-			if ( isset( $current_settings['language'] ) && !empty( $current_settings['language'] ) )
-				$args['language'] = '&language='.$current_settings['language'];
+		if ( isset( $current_settings['language'] ) && !empty( $current_settings['language'] ) )
+			$args['language'] = '&language='.$current_settings['language'];
 
-			wp_localize_script( 'simple-gm', 'simplegmL10n', $args );
-		}
+		wp_localize_script( 'simple-gm', 'simplegmL10n', $args );
 	}
 	
 	/**
