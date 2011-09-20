@@ -10,10 +10,23 @@ Text Domain: simple-post-gmaps
 Domain Path: /languages/
 Network: false
 
-Copyright 2010 Amaury BALMER (amaury@beapi.fr) - Be-API
+----
 
-This plugin is not free to usage, not open-source, not GPL.
-You can't use and modify this plugin without the permission of Be-API. (amaury@beapi.fr)
+Copyright 2011 Amaury Balmer (amaury@beapi.fr) - Be-API
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 global $wpdb;
