@@ -16,7 +16,7 @@ class Simple_Post_Gmaps_Client {
 			add_action( 'wp_head', 		array(&$this, 'addGmapsV3Header') );
 			add_action( 'wp_head', 		array(&$this, 'displayGeoMeta') );
 			
-			add_action( 'template_redirect', array(&$this, 'addScripts') );
+			add_action( 'template_redirect', array(&$this, 'addScripts'), 9 );
 			
 			add_filter( 'query_vars', array( &$this, 'addQueryVar' ) );
 			add_action( 'parse_query', array( &$this, 'parseQuery' ) );
@@ -57,28 +57,28 @@ class Simple_Post_Gmaps_Client {
 			return false;
 		
 		// Check if this singular is registered
-		if( !is_singular( $current_settings['custom-types'] ) )
-			return false;
+		if( is_single( ) || is_archive() || is_post_type_archive() || is_page() ) {
 
-		// Set default tooltip
-		if ( !isset( $current_settings['tooltip'] ) && empty( $current_settings['tooltip'] ) ) {
-			$current_settings['tooltip'] = SGM_TOOLTIP;
+			// Set default tooltip
+			if ( !isset( $current_settings['tooltip'] ) && empty( $current_settings['tooltip'] ) ) {
+				$current_settings['tooltip'] = SGM_TOOLTIP;
+			}
+	
+			// Enqueue scripts
+			wp_enqueue_script( 'jquery' );
+			wp_enqueue_script( 'google-jsapi', 	'http://maps.google.com/maps/api/js?libraries=places&sensor=false', array(), SGM_VERSION );
+			wp_enqueue_script( 'geoxml3', 		SGM_URL . 'lib/geoxml3.js', array('google-jsapi'), SGM_VERSION );
+			wp_enqueue_script( 'spgm-map', 		SGM_URL . 'inc/ressources/spgm-map.min.js', array( 'jquery', 'google-jsapi' , 'geoxml3' ), SGM_VERSION );
+			
+			wp_localize_script( 'geoxml3', 'geoxml3L10n', array(
+				'readmore' => __('Read more', 'simple-post-gmaps'),
+				'tooltip' => $current_settings['tooltip'],
+				'kml_url' => home_url( '?showposts_kml=true' )
+			) );
+	
+			// Enqueue CSS if needed, correct bug with twenty eleven
+			add_action( 'wp_head', array(&$this, 'addCss') );
 		}
-
-		// Enqueue scripts
-		wp_enqueue_script( 'jquery' );
-		wp_enqueue_script( 'google-jsapi', 	'http://maps.google.com/maps/api/js?libraries=places&sensor=false', array(), SGM_VERSION );
-		wp_enqueue_script( 'geoxml3', 		SGM_URL . 'lib/geoxml3.js', array('google-jsapi'), SGM_VERSION );
-		wp_enqueue_script( 'spgm-map', 		SGM_URL . 'inc/ressources/spgm-map.min.js', array( 'jquery', 'google-jsapi' , 'geoxml3' ), SGM_VERSION, true );
-		
-		wp_localize_script( 'geoxml3', 'geoxml3L10n', array(
-			'readmore' => __('Read more', 'simple-post-gmaps'),
-			'tooltip' => $current_settings['tooltip'],
-			'kml_url' => home_url( '?showposts_kml=true' )
-		) );
-		
-		// Enqueue CSS if needed, correct bug with twenty eleven
-		add_action( 'wp_head', array(&$this, 'addCss') );
 	}
 
 	/**
@@ -292,10 +292,11 @@ class Simple_Post_Gmaps_Client {
 			'display_taxo' 		=> false,
 			'taxonomy' 			=> '',
 			'post_type' 		=> '',
+			'term'				=> '',
 			'search'			=> false
 		), $atts ) );
 
-		return $this->buildGlobalMaps( $width, $height, $zoom, $display_taxo, $taxonomy, $post_type, $search );
+		return $this->buildGlobalMaps( $width, $height, $zoom, $display_taxo, $taxonomy, $term , $post_type, $search );
 	}
 
 	/**
@@ -307,7 +308,7 @@ class Simple_Post_Gmaps_Client {
 	 * @return string
 	 * @author Amaury Balmer & Nicolas Juen
 	 */
-	function buildGlobalMaps(  $width = '600px', $height = '500px', $zoom = 5, $display_taxo = false, $taxonomy = '', $post_type ='', $search = false ) {
+	function buildGlobalMaps(  $width = '600px', $height = '500px', $zoom = 5, $display_taxo = false, $taxonomy = '', $term = '', $post_type ='', $search = false ) {
 		global $map_id;
 		
 		// Init output
@@ -330,7 +331,8 @@ class Simple_Post_Gmaps_Client {
 		$url_request_taxo = '';
 		$taxonomies = array();
 		$firstTaxonomy = '';
-		if ( $display_taxo == true ) {
+		
+		if ( $display_taxo == 'true' ) {
 			// Get the taxonomies in the short code if needed
 			if ( empty( $taxonomy ) )
 				$taxonomies =  get_taxonomies( array( 'public' => true, 'show_ui' => true ), 'objects' );
@@ -356,11 +358,20 @@ class Simple_Post_Gmaps_Client {
 			}
 		}
 		
+		// Check term given
+		if( $term != '' ) {
+			// if taxonomy given add the taxonomy
+			if ( !empty( $taxonomy ) && !is_array( $taxonomy ) && taxonomy_exists( $taxonomy ) ) { // Get the first taxonomy for the icons
+				$firstTaxonomy = '&taxonomiesFilter[]='.$taxonomy;
+			}
+		}
+		
 		// Make the wrapper for the taxonomies and the filters and search
 		$output .= '<div class="spgmWrapper">'."\n"; 
 			$output .= '<form method="post" class="spgmSettings">'."\n"; 
 				$output .= '<input type="hidden" name="spgm_post_type" value="'.esc_attr( $post_type ).'" />'."\n"; 
-				$output .= '<input type="hidden" name="spgm_requestTaxo" value="'.esc_attr( $url_request_taxo ).'"/>'."\n"; 
+				$output .= '<input type="hidden" name="spgm_requestTaxo" value="'.esc_attr( $url_request_taxo ).'"/>'."\n";
+				$output .= '<input type="hidden" name="spgm_requestTerm" value="'.esc_attr( $term ).'"/>'."\n"; 
 				$output .= '<input type="hidden" name="spgm_firstTaxo" value="'.esc_attr( $firstTaxonomy ).'"/>'."\n"; 
 				$output .= '<input type="hidden" name="spgm_zoom" value="'.esc_attr( $zoom ).'"/>'."\n"; 
 			$output .= '</form>'."\n"; 
@@ -377,47 +388,49 @@ class Simple_Post_Gmaps_Client {
 			return apply_filters( 'buildGlobalMaps', $output.'</div>' );
 		
 		// Get the restults
-		$results = $this->getPostsWithGeo();
+		$results = $this->getPostsWithGeo( $post_type );
 		
-		// Filter terms
-		$output .= '<div class="termsFiltering" id="termsFiltering-'.$map_id.'">';
-			foreach( $taxonomies as $taxonomy ) {
-				//Get the terms with posts with coordinates
-				$terms = get_terms( $taxonomy->name, array( 'hide_empty' => true, 'gmaps' => $taxonomy->name ) );
-			
-				//Go to the next taxonomy if no terms
-				if ( empty( $terms ) )
-					continue;
-			
-				$output .= '<div class="'.$taxonomy->name.'" id="'.$taxonomy->name.'">';
-					$output .= '<h3>'.apply_filters('taxonomy_name', $taxonomy->labels->name ).'</h3>';
-			
-					//Display a label with the checkbox
-					foreach( $terms as $term ) {
-						// Get the objects in the current term
-						$objects = get_objects_in_term( $term->term_id, $taxonomy->name );
-						
-						// Intersect the geolocalized posts and the term objects
-						$intersect = array_intersect( $results, $objects );		
-						
-						// Continue if no posts	
-						if( empty( $intersect ) )
-							continue;
-						
-						$output .= '<p>' . "\n";
-							$output .= '<input type="checkbox" id="'.esc_attr( $map_id.'-'.$term->term_id ).'" value="'.esc_attr( $term->term_id ).'" />' . "\n";
+		if( $display_taxo == true ) {
+			// Filter terms
+			$output .= '<div class="termsFiltering" id="termsFiltering-'.$map_id.'">';
+				foreach( $taxonomies as $taxonomy ) {
+					//Get the terms with posts with coordinates
+					$terms = get_terms( $taxonomy->name, array( 'hide_empty' => true, 'gmaps' => $taxonomy->name ) );
+				
+					//Go to the next taxonomy if no terms
+					if ( empty( $terms ) )
+						continue;
+				
+					$output .= '<div class="'.$taxonomy->name.'" id="'.$taxonomy->name.'">';
+						$output .= '<h3>'.apply_filters('taxonomy_name', $taxonomy->labels->name ).'</h3>';
+				
+						//Display a label with the checkbox
+						foreach( $terms as $term ) {
+							// Get the objects in the current term
+							$objects = get_objects_in_term( $term->term_id, $taxonomy->name );
 							
-							//Display the legend icon if present
-							if( is_file(TEMPLATEPATH . '/gmaps/ico-legend-'.$term->taxonomy.'-'.$term->term_id.'.png') )
-								$output .= '<img src="'.get_bloginfo( 'template_url' ) . '/gmaps/ico-legend-'.esc_attr( $term->taxonomy.'-'.$term->term_id ).'.png'.'" />';
+							// Intersect the geolocalized posts and the term objects
+							$intersect = array_intersect( $results, $objects );		
+							
+							// Continue if no posts	
+							if( empty( $intersect ) )
+								continue;
+							
+							$output .= '<p>' . "\n";
+								$output .= '<input type="checkbox" id="'.esc_attr( $map_id.'-'.$term->term_id ).'" value="'.esc_attr( $term->term_id ).'" />' . "\n";
 								
-							$output .= '<label for="'.esc_attr( $map_id.'-'.$term->term_id ).'">'.esc_html( $term->name ).'</label>' . "\n";
-						$output .='</p>' . "\n";
-					}
-				$output .= '</div>' . "\n";
-			}
-			$output .= '</div>'. "\n";
-		$output .=	'</div>' . "\n";
+								//Display the legend icon if present
+								if( is_file(TEMPLATEPATH . '/gmaps/ico-legend-'.$term->taxonomy.'-'.$term->term_id.'.png') )
+									$output .= '<img src="'.get_bloginfo( 'template_url' ) . '/gmaps/ico-legend-'.esc_attr( $term->taxonomy.'-'.$term->term_id ).'.png'.'" />';
+									
+								$output .= '<label for="'.esc_attr( $map_id.'-'.$term->term_id ).'">'.esc_html( $term->name ).'</label>' . "\n";
+							$output .='</p>' . "\n";
+						}
+					$output .= '</div>' . "\n";
+				}
+				$output .= '</div>'. "\n";
+			$output .=	'</div>' . "\n";
+		}
 		
 		//Return with filters
 		return apply_filters( 'buildGlobalMaps', $output );
@@ -429,10 +442,15 @@ class Simple_Post_Gmaps_Client {
 	 * @return array
 	 * @author Amaury Balmer
 	 */
-	function getPostsWithGeo() {
+	function getPostsWithGeo( $post_type = '' ) {
 		global $wpdb;
+		$where = '';
 		
-		$results = $wpdb->get_col( "SELECT post_id FROM $wpdb->simple_post_gmaps" );
+		if( isset( $post_type ) && !empty( $post_type ) && post_type_exists( $post_type ) )
+			$where = "AND post_type=".$post_type ;
+		
+		$results = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts JOIN $wpdb->postmeta ON post_id = ID WHERE meta_key = 'geo' %s", array( $where ) ) );
+		
 		if ( $results == false )
 			return array();
 		
@@ -454,7 +472,8 @@ class Simple_Post_Gmaps_Client {
 		$post_type 	= isset( $_GET['post_type'] ) && !empty( $_GET['post_type'] ) 				? $_GET['post_type'] 		: 'any';
 		
 		// Get all posts
-		$post_ids = $this->getPostsWithGeo();
+		$post_ids = $this->getPostsWithGeo( $post_type );
+		
 		
 		// Remove IDs
 		if ( !empty($taxonomies) ) {
@@ -468,11 +487,11 @@ class Simple_Post_Gmaps_Client {
 			if ( !empty( $terms  ) && !empty( $taxonomies ) )
 				$postIn = get_objects_in_term( $terms, $taxonomies );
 			
-			$post_ids = array_intersect($post_ids, $postIn);
+			$post_ids = array_intersect( $post_ids, $postIn );
 		}
 		
 		// Make the query
-		$query_posts = new WP_Query( array( 'post__in' => $post_ids, 'post_type' => $post_type, 'nopaging' => 'true', 'status' => 'publish' ) );
+		$query_posts = new WP_Query( array( 'post__in' => $post_ids, 'post_type' => $post_type, 'nopaging' => true, 'status' => 'publish', 'posts_per_page' => -1 ) );
 		
 		echo '<?xml version="1.0" encoding="' . get_bloginfo( 'charset' ) . '"?' . ">\n";
 		?>
@@ -484,7 +503,7 @@ class Simple_Post_Gmaps_Client {
 				
 				<?php
 				foreach( (array) $query_posts->posts as $post ) :
-					setup_postdata($post);
+					setup_postdata( $post );
 					
 					//Get the post meta for the geolocalisation, continue if no metas
 					$meta = '';
@@ -494,14 +513,14 @@ class Simple_Post_Gmaps_Client {
 					
 					// Get the first term id for the icon style
 					$style_url = '<styleUrl></styleUrl>' . "\n";
-					if ( !empty($taxonomies) ) {
+					if ( !empty( $taxonomies ) ) {
 						$term_id = $this->getFirstTerm( $post->ID, $taxonomies[0], 'term_id' );
 						$style_url = '<styleUrl>#ico-'.$taxonomies[0].'-'.$term_id.'</styleUrl>' . "\n";
 					}
 					?>
 					<Placemark>
 						<name><?php echo esc_html( $post->post_title ); ?></name>
-						<permalink><?php echo get_permalink( $post->ID ); ?></permalink>
+						<permalink><?php echo get_permalink( $post ); ?></permalink>
 						<description><![CDATA[<?php $this->theExcerpt( 35 ); ?>]]></description>
 						<?php echo $style_url; ?>
 						<Point>
@@ -510,7 +529,8 @@ class Simple_Post_Gmaps_Client {
 					</Placemark>
 				<?php endforeach; ?>
 			</Document>
-		</kml><?php
+		</kml>
+		<?php
 	}
 	
 	/**
@@ -589,7 +609,7 @@ class Simple_Post_Gmaps_Client {
 		
 		$post->post_excerpt = trim( $post->post_excerpt );
 		
-		if ( empty($post->post_excerpt) ) {
+		if ( empty($post->post_excerpt) && !empty($post->post_content) ) {
 			echo $this->my_trim_excerpt( $post->post_content, $word );
 		} else {
 			the_excerpt();
@@ -607,7 +627,6 @@ class Simple_Post_Gmaps_Client {
 	function my_trim_excerpt( $content = '', $word = 55 ) {
 		$text = strip_shortcodes( $content );
 		
-		$text = apply_filters('the_content', $text);
 		$text = str_replace(']]>', ']]&gt;', $text);
 		$text = strip_tags($text);
 		$excerpt_length = apply_filters('excerpt_length', $word );

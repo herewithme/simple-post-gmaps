@@ -4,7 +4,7 @@ Donate link: http://www.beapi.fr/donate/
 Tags : google, maps, googlemaps, simple series, map, geo, geolocalize, localisation
 Requires at least: 3.0
 Tested up to: 3.2.1
-Stable tag: 3.1.2
+Stable tag: 3.2
 
 == Description ==
 
@@ -24,6 +24,10 @@ Read the sample file for an example of query.
 
 == Changelog ==
 
+* 3.2
+	* Performance improvements
+	* Shortcode enerator with terms
+	* Remove some javascript debug
 * 3.1.2
 	* Add simple post gmaps icon and script on ever admin post insertion/edition page.
 * 3.1.1

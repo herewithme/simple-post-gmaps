@@ -6,6 +6,7 @@ jQuery( function(){
 			pType :'',
 			taxoR : '',
 			taxoF : '',
+			term : '',
 			zoomS : 10,
 			geoXml : '',
 			options : '',
@@ -22,6 +23,7 @@ jQuery( function(){
 				this.form = jQuery( el ).closest( 'div.spgmWrapper' ).find( 'form.spgmSettings' );
 				this.pType = this.form.find( 'input[name=spgm_post_type]' ).val();
 				this.taxoR = this.form.find( 'input[name=spgm_requestTaxo]' ).val();
+				this.term = this.form.find( 'input[name=spgm_requestTerm]' ).val();
 				this.taxoF = this.form.find( 'input[name=spgm_firstTaxo]' ).val();
 				this.zoomS = this.form.find( 'input[name=spgm_zoom]' ).val();
 				
@@ -43,11 +45,17 @@ jQuery( function(){
 				}
 
 				this.geoCoder = new google.maps.Geocoder();
-
-				this.refreshMap( '&post_type='+this.pType+this.taxoR );
+				
+				if( this.term == '' ) {
+					this.refreshMap( '&post_type='+this.pType+this.taxoR );
+				}
 
 				this.filterForm = jQuery( el ).closest( 'div.spgmWrapper' ).find( '.termsFiltering' );
 				this.filterForm.find( 'input' ).click( function() { _self.filter() } );
+
+				if( this.term != '' ) {
+					_self.filterOneTerm();
+				}
 			},
 			refreshMap: function( params ) {
 				var _self = this;
@@ -91,6 +99,13 @@ jQuery( function(){
 
 				//Create the new map
 				this.refreshMap('&post_type='+this.pType+termsFilter+taxonomiesFilter+'&taxonomiesFilter[]='+this.taxoF);
+			},
+			filterOneTerm: function() {
+				
+				var termsFilter = "&termsFilter[]="+this.term;
+				
+				//Create the new map
+				this.refreshMap('&post_type='+this.pType+this.taxoF+termsFilter);
 			}
 		}
 		spgm.init( el );

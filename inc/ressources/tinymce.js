@@ -2,8 +2,12 @@
 	jQuery( '.sendSMPG select[name=post_type]' ).live( 'change', function( e ) {
 		e.preventDefault();
 		spgm_refresh_taxonomies( this );
-	} )
-	var launched = false;
+	} );
+	jQuery( '.sendSMPG select[name=taxonomy]' ).live( 'change', function( e ) {
+		e.preventDefault();
+		spgm_refresh_terms( this );
+	} );
+	launched = false;
 	tinymce.create('tinymce.plugins.spgm', {
 		init : function(ed, url) {
 			ed.addButton('spgm', {
@@ -46,9 +50,14 @@ function spgm_create_shortcode( el ) {
 	var inputs = jQuery( el ) .serializeArray();
 	var shortcode = ' [global-googlemaps ';
 	for( var a in inputs ) {
+		
 		if( inputs[a].value == "-1" || inputs[a].value == "any" )
 			continue;
-		shortcode += ' '+inputs[a].name+'='+inputs[a].value;
+			
+		if( inputs[a].value == "" )
+			inputs[a].value = false;
+			
+		shortcode += ' '+inputs[a].name+'="'+inputs[a].value+'"';
 	}
 	
 	shortcode += ' ] ';
@@ -103,6 +112,53 @@ function spgm_refresh_taxonomies( el ) {
 				}
 
 				taxo.html(output);
+			}
+		} );
+	}
+}
+
+/**
+ * Refresh terms of one taxonomy
+ *
+ * @param el : the element clicked
+ * @return void
+ * @author Nicolas Juen
+ */
+function spgm_refresh_terms( el ) {
+	// get current object
+	var _self = jQuery( el );
+
+	// Get the parent widget
+	var term = jQuery( '.sendSMPG select[name=term]' );
+	var parent = term.closest( 'td' );
+	var taxo = _self.val();
+	
+	// Check if we are not currently ajaxng on this frame
+	if( !parent.hasClass( 'ajaxing' ) ) {
+		jQuery.ajax( {
+			url: ajaxurl,
+			type: "POST",
+			dataType: 'json',
+			data: { action : "taxonomy_terms", taxonomy : taxo },
+			beforeSend: function() {
+				// Add ajax class to the parent
+				parent.addClass( 'ajaxing' );
+				
+				// Fade the parent and the list while searching
+				parent.fadeTo( 'fast','0.5' );
+			},
+			success: function( result ) {
+				output = jQuery( '<option/>' ).attr( 'value', "-1" ).html( 'None' );
+
+				// remvoe class for ajaxing and set the opacity to 1
+				parent.removeClass( 'ajaxing' );
+				parent.fadeTo( 'fast','1' );
+
+				for( var i in result ) {
+					output.push( jQuery( '<option/>' ).attr( 'value', i ).html( result[i] )[0] );
+				}
+
+				term.html(output);
 			}
 		} );
 	}
